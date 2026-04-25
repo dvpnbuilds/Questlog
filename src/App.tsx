@@ -155,28 +155,40 @@ export default function App() {
     setPlayerLevel(newLevel);
   };
 
-  const completeQuest = (id: string, rarity: Rarity) => {
-    setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed' } : q));
+  const completeQuest = async (id: string, rarity: Rarity) => {
+    const completedAt = Date.now();
+    setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed', completedAt } : q));
     setActiveQuest(null);
     addXP(XP_REWARDS[rarity] || 0);
+    const { error } = await supabase
+      .from('quests')
+      .update({ status: 'completed', completed_at: completedAt })
+      .eq('id', id);
+    if (error) console.error('Failed to complete quest:', error);
   };
 
-  const addQuest = (title: string, rarity: Rarity) => {
-    const newQuest: Quest = {
-      id: Date.now().toString(),
+  const addQuest = async (title: string, rarity: Rarity) => {
+    const newQuest = {
       title,
       description: 'A newly created quest.',
       category: 'Side Quest',
       rarity,
       xp: XP_REWARDS[rarity],
       status: 'active',
-      createdAt: Date.now(),
+      created_at: Date.now(),
     };
-    setQuests([...quests, newQuest]);
+    const { data, error } = await supabase.from('quests').insert(newQuest).select().single();
+    if (error) { console.error('Failed to add quest:', error); return; }
+    if (data) setQuests(prev => [...prev, data]);
   };
 
-  const updateQuest = (updatedQuest: Quest) => {
+  const updateQuest = async (updatedQuest: Quest) => {
     setQuests(prev => prev.map(q => q.id === updatedQuest.id ? updatedQuest : q));
+    const { error } = await supabase
+      .from('quests')
+      .update({ description: updatedQuest.description, images: updatedQuest.images })
+      .eq('id', updatedQuest.id);
+    if (error) console.error('Failed to update quest:', error);
   };
 
   const updateNote = (updatedNote: Note) => {
