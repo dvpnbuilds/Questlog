@@ -1,0 +1,496 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { LayoutDashboard, Plus, BookOpen, User, Search } from 'lucide-react';
+import { QuestCard } from './components/QuestCard';
+import { SpellbookNoteCard } from './components/SpellbookNoteCard';
+import { NewQuestModal } from './components/NewQuestModal';
+import { ActiveQuestModal } from './components/ActiveQuestModal';
+import { NoticeBoardView } from './components/NoticeBoardView';
+import { SkillTreeView } from './components/SkillTreeView';
+import { ProfileView } from './components/ProfileView';
+import type { Quest, Rarity, Note, Bounty, TimelineEvent, Encounter } from './types';
+
+export default function App() {
+  const [playerLevel, setPlayerLevel] = useState<number>(() => {
+    const saved = localStorage.getItem('playerLevel');
+    return saved ? parseInt(saved, 10) : 1;
+  });
+  const [playerXP, setPlayerXP] = useState<number>(() => {
+    const saved = localStorage.getItem('playerXP');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [dailyStreak, setDailyStreak] = useState<number>(() => {
+    const saved = localStorage.getItem('dailyStreak');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  const [unlockedNodeIds, setUnlockedNodeIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('unlockedNodeIds');
+    return saved ? new Set(JSON.parse(saved)) : new Set(['frontend_novice']);
+  });
+  const [activeView, setActiveView] = useState<'noticeboard' | 'active' | 'completed' | 'spellbook' | 'skilltree' | 'profile'>('noticeboard');
+  const [isNewQuestModalOpen, setIsNewQuestModalOpen] = useState(false);
+  const [activeQuest, setActiveQuest] = useState<Quest | null>(null);
+  const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null);
+  const [isGrinding, setIsGrinding] = useState(false);
+  const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
+  
+  const randomEncounters: Encounter[] = [
+    { id: '1', text: '💧 A Water Elemental demands a tribute! Drink a glass of water.' },
+    { id: '2', text: '🧘‍♂️ A wandering monk casts Stiff Neck. Fix your posture and stretch!' },
+    { id: '3', text: '💾 A shadowy rogue whispers: When was your last save/commit?' },
+    { id: '4', text: '🦆 A mystical Rubber Duck appears. Explain your current task out loud to it.' },
+    { id: '5', text: '👹 The Scope Creep Goblin hisses: Add one more feature! Resist the urge and stay focused.' },
+    { id: '6', text: '👁️ A fairy casts Screen Glare! Look 20 feet away for 20 seconds.' },
+];
+  
+  const [quests, setQuests] = useState<Quest[]>(() => {
+    const saved = localStorage.getItem('quests');
+    const ALL_REQUIRED_QUESTS: Quest[] = [
+        { id: 'm1', title: 'The First Beacon', description: 'Build a Node.js server that says System Online on localhost:3000.', category: 'Mastery', rarity: 'Common', XP: 50, status: 'active' },
+        { id: 'm2', title: 'The Webhook Receiver', description: 'Create a POST endpoint that can receive a real payload from a GHL Webhook.', category: 'Mastery', rarity: 'Rare', XP: 100, status: 'active' },
+        { id: 'm3', title: 'The Env Sentinel', description: 'Successfully hide API keys in a .env file and access them in code.', category: 'Mastery', rarity: 'Rare', XP: 75, status: 'active' },
+        // Architect
+        { id: 'a1', title: 'Foundation I: Initialize Supabase', description: 'Initialize Supabase project & link it to the React frontend.', category: 'Architect', rarity: 'Common', XP: 100, status: 'active' },
+        { id: 'a2', title: 'Foundation II: Schema Design', description: 'Design PostgreSQL schema for Users, StudyNotes, and QuizHistory.', category: 'Architect', rarity: 'Rare', XP: 150, status: 'active' },
+        { id: 'a3', title: 'Foundation III: Implement Auth', description: 'Implement Email/Password and Google OAuth so users can save progress.', category: 'Architect', rarity: 'Rare', XP: 200, status: 'active' },
+        { id: 'a4', title: 'Foundation IV: Real Data Migration', description: 'Replace all localStorage or mock data with real Supabase calls.', category: 'Architect', rarity: 'Epic', XP: 250, status: 'active' },
+        { id: 'b1', title: 'Bridge I: The GHL Webhook', description: 'Set up a Webhook or Edge Function to ping GHL when a new user signs up.', category: 'Architect', rarity: 'Rare', XP: 200, status: 'active' },
+        { id: 'b2', title: 'Bridge II: Lead Magnet Flow', description: 'If a user finishes a quiz in the Med App, GHL automatically emails a summary PDF.', category: 'Architect', rarity: 'Epic', XP: 250, status: 'active' },
+        { id: 'b3', title: 'Bridge III: Quoting Tool Connect', description: 'Connect the Quoting tool to Supabase to store history before sending to GHL.', category: 'Architect', rarity: 'Epic', XP: 300, status: 'active' },
+        { id: 's1', title: 'Showcase I: Architecture Diagram', description: 'Design the Architecture Diagram component using Figma or Framer Motion.', category: 'Architect', rarity: 'Common', XP: 100, status: 'active' },
+        { id: 's2', title: 'Showcase II: Dark-Mode Hero', description: 'Build the Hero section with a high-end, dark-mode aesthetic.', category: 'Architect', rarity: 'Rare', XP: 150, status: 'active' },
+        { id: 's3', title: 'Showcase III: Loom Demos', description: 'Record Loom Demos for 1. RAG flow, 2. GHL Automation, 3. Quoting Tool.', category: 'Architect', rarity: 'Rare', XP: 200, status: 'active' },
+        { id: 's4', title: 'Showcase IV: Deployment', description: 'Deploy the entire portfolio to dvpnbuilds.com.', category: 'Architect', rarity: 'Epic', XP: 500, status: 'active' },
+        // Standalone
+        { id: 'std1', title: 'System Blueprint Creation', description: 'Design system maps.', category: 'Standard', rarity: 'Rare', XP: 150, status: 'active' },
+        { id: 'std2', title: 'RAG Implementation (Med App)', description: 'Retrieval Augmented Generation.', category: 'Standard', rarity: 'Epic', XP: 600, status: 'active' },
+        { id: 'std3', title: 'Performance Optimization', description: 'Make it fast.', category: 'Standard', rarity: 'Common', XP: 100, status: 'active' },
+    ];
+    try {
+        const parsed: Quest[] = saved ? JSON.parse(saved) : [];
+        const result = [...parsed];
+        ALL_REQUIRED_QUESTS.forEach(mq => {
+            if (!result.find(q => q.id === mq.id)) {
+                result.push(mq);
+            }
+        });
+        return result;
+    } catch {
+        return ALL_REQUIRED_QUESTS;
+    }
+  });
+
+  const [recallNotes, setRecallNotes] = useState<Note[]>(() => {
+    const saved = localStorage.getItem('recallNotes');
+    try {
+        return saved ? JSON.parse(saved) : [];
+    } catch {
+        return [];
+    }
+  });
+
+  const [dailyBounties, setDailyBounties] = useState<Bounty[]>(() => {
+    const saved = localStorage.getItem('dailyBounties');
+    try {
+        return saved ? JSON.parse(saved) : [];
+    } catch {
+        return [];
+    }
+  });
+
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>(() => {
+    const saved = localStorage.getItem('timelineEvents');
+    try {
+        return saved ? JSON.parse(saved) : [];
+    } catch {
+        return [];
+    }
+  });
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('playerLevel', playerLevel.toString());
+    localStorage.setItem('playerXP', playerXP.toString());
+    localStorage.setItem('unlockedNodeIds', JSON.stringify(Array.from(unlockedNodeIds)));
+    localStorage.setItem('dailyStreak', dailyStreak.toString());
+    localStorage.setItem('quests', JSON.stringify(quests));
+    localStorage.setItem('recallNotes', JSON.stringify(recallNotes));
+    localStorage.setItem('dailyBounties', JSON.stringify(dailyBounties));
+    localStorage.setItem('timelineEvents', JSON.stringify(timelineEvents));
+  }, [playerLevel, playerXP, quests, recallNotes, dailyBounties, timelineEvents]);
+
+  const XP_REWARDS: Record<Rarity, number> = { Common: 50, Rare: 100, Epic: 250 };
+
+  const addXP = (amount: number) => {
+    let totalXP = playerXP + amount;
+    let newLevel = playerLevel;
+    while (totalXP >= 500) {
+        newLevel++;
+        totalXP -= 500;
+    }
+    setPlayerXP(totalXP);
+    setPlayerLevel(newLevel);
+  };
+
+  const completeQuest = (id: string, rarity: Rarity) => {
+    setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed' } : q));
+    setActiveQuest(null);
+    addXP(XP_REWARDS[rarity] || 0);
+  };
+
+  const addQuest = (title: string, rarity: Rarity) => {
+    const newQuest: Quest = {
+      id: Date.now().toString(),
+      title,
+      description: 'A newly created quest.',
+      rarity,
+      XP: XP_REWARDS[rarity],
+      status: 'active',
+    };
+    setQuests([...quests, newQuest]);
+  };
+
+  const updateQuest = (updatedQuest: Quest) => {
+    setQuests(prev => prev.map(q => q.id === updatedQuest.id ? updatedQuest : q));
+  };
+  
+  const updateNote = (updatedNote: Note) => {
+    setRecallNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+  };
+
+  const addNote = () => {
+      const id = Date.now().toString();
+      const newNote: Note = {
+          id,
+          title: 'New Spell',
+          description: '',
+          tags: ['new'],
+          images: []
+      };
+      setRecallNotes([...recallNotes, newNote]);
+      setExpandedNoteId(id);
+  }
+
+  const deleteEvent = (id: string) => {
+      setTimelineEvents(prev => prev.filter(e => e.id !== id));
+  }
+
+  const toggleTimelineEvent = (id: string) => {
+      setTimelineEvents(prev => prev.map(e => {
+          if (e.id === id) {
+              if (!e.isCompleted) {
+                  addXP(5);
+                  return { ...e, isCompleted: true, completedAt: Date.now() };
+              }
+              return { ...e, isCompleted: false, completedAt: undefined };
+          }
+          return e;
+      }));
+  };
+
+  const addEvent = (time: string, description: string, isRecurring: boolean) => {
+    setTimelineEvents(prev => [...prev, { id: Date.now().toString(), time, description, isCompleted: false, isRecurring }].sort((a,b) => a.time.localeCompare(b.time)));
+  };
+
+  const toggleBounty = (id: string) => {
+    setDailyBounties(prev => {
+        const next = prev.map(b => {
+            if (b.id === id && b.status === 'active') {
+                addXP(10);
+                return { ...b, status: 'completed' };
+            }
+            return b;
+        });
+        if (next.length > 0 && next.every(b => b.status === 'completed')) {
+            setDailyStreak(s => s + 1);
+        }
+        return next;
+    });
+  };
+
+  const addBounty = (title: string) => {
+    setDailyBounties([...dailyBounties, { id: Date.now().toString(), title, status: 'active', createdAt: Date.now() }]);
+  };
+
+  const abandonBounty = (id: string) => {
+      setDailyBounties(prev => prev.filter(b => b.id !== id));
+  };
+  
+  const reviveBounty = (id: string) => {
+      setDailyBounties(prev => prev.map(b => b.id === id ? { ...b, status: 'active', createdAt: Date.now() } : b));
+  };
+
+  useEffect(() => {
+      const interval = setInterval(() => {
+          const now = Date.now();
+          setDailyBounties(prev => prev.map(b => {
+              if (b.status === 'active' && now > b.createdAt + 24 * 60 * 60 * 1000) {
+                  return { ...b, status: 'failed' };
+              }
+              return b;
+          }));
+          
+          setTimelineEvents(prev => prev.map(e => {
+            if (e.isRecurring && e.isCompleted && new Date(now).getHours() === 0 && new Date(now).getMinutes() === 0) {
+                return { ...e, isCompleted: false, completedAt: undefined };
+            }
+            return e;
+          }));
+      }, 60000);
+      return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+      let interval: NodeJS.Timeout;
+      if (isGrinding) {
+          // Triggers a random developer encounter every 20 minutes.
+          interval = setInterval(() => {
+              const random = randomEncounters[Math.floor(Math.random() * randomEncounters.length)];
+              setActiveEncounter(random);
+          }, 20 * 60 * 1000);
+      }
+      return () => clearInterval(interval);
+  }, [isGrinding]);
+
+  const resetData = () => {
+      if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+          localStorage.clear();
+          setPlayerLevel(1);
+          setPlayerXP(0);
+          setQuests([]);
+          setActiveView('noticeboard');
+          setActiveQuest(null);
+          setDailyBounties([]);
+          setTimelineEvents([]);
+      }
+  }
+
+  return (
+    <div className="flex h-screen bg-[#020617] text-slate-200 overflow-hidden font-sans border border-slate-800 md:flex-row flex-col">
+      {/* Sidebar */}
+      <aside className="hidden md:flex w-64 border-r border-cyan-500/30 bg-slate-900/40 backdrop-blur-xl flex-col shadow-[4px_0_24px_rgba(6,182,212,0.1)]">
+        <div className="p-6 border-b border-slate-800">
+            <h1 className="font-display text-2xl font-bold tracking-tighter text-white">QUEST<span className="text-cyan-400">LOG</span></h1>
+        </div>
+        <nav className="flex-1 p-4 space-y-2">
+          <button 
+            onClick={() => setActiveView('noticeboard')}
+            className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'noticeboard' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+            <LayoutDashboard size={20} /> Notice Board
+          </button>
+          <button 
+            onClick={() => setActiveView('active')}
+            className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'active' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+            <LayoutDashboard size={20} /> Active Quests
+          </button>
+          <button 
+            onClick={() => setActiveView('spellbook')}
+            className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'spellbook' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+            <BookOpen size={20} /> The Spellbook
+          </button>
+          <button 
+            onClick={() => setActiveView('skilltree')}
+            className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'skilltree' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+            <BookOpen size={20} /> Skill Tree
+          </button>
+           <button 
+             onClick={() => setActiveView('profile')}
+             className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'profile' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
+             <User size={20} /> Profile
+           </button>
+        </nav>
+        <div className="p-4 border-t border-slate-800">
+             <button onClick={resetData} className="text-xs text-slate-500 hover:text-red-400 transition-colors">Reset Data</button>
+        </div>
+      </aside>
+      
+      {/* Mobile Nav */}
+      <nav className="md:hidden flex justify-between items-center bg-slate-950 border-t border-slate-800 p-2">
+        <button onClick={() => setActiveView('noticeboard')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'noticeboard' ? 'text-cyan-400' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px]">Board</span></button>
+        <button onClick={() => setActiveView('active')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'active' ? 'text-cyan-400' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px]">Quests</span></button>
+        <button onClick={() => setActiveView('spellbook')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'spellbook' ? 'text-cyan-400' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px]">Spell</span></button>
+        <button onClick={() => setActiveView('skilltree')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'skilltree' ? 'text-cyan-400' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px]">Skills</span></button>
+        <button onClick={() => setActiveView('profile')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'profile' ? 'text-cyan-400' : 'text-slate-500'}`}><User size={20}/> <span className="text-[10px]">Profile</span></button>
+      </nav>
+
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <AnimatePresence mode="wait">
+        {activeView === 'noticeboard' ? (
+            <NoticeBoardView 
+                dailyBounties={dailyBounties} 
+                addBounty={addBounty} 
+                toggleBounty={toggleBounty}
+                abandonBounty={abandonBounty}
+                reviveBounty={reviveBounty}
+                timelineEvents={timelineEvents}
+                addEvent={addEvent}
+                deleteEvent={deleteEvent}
+                toggleTimelineEvent={toggleTimelineEvent}
+                isGrinding={isGrinding}
+                setIsGrinding={setIsGrinding}
+                setActiveView={setActiveView}
+                setIsNewQuestModalOpen={setIsNewQuestModalOpen}
+                addNote={addNote}
+            />
+        ) : activeView === 'spellbook' ? (
+            <motion.main 
+                key="spellbook"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="p-8"
+            >
+                <div className="flex justify-between items-center mb-8 gap-4">
+                    <div className="relative flex-1 max-w-2xl">
+                        <Search className="absolute left-4 top-3.5 text-cyan-400/50" />
+                        <input 
+                            type="text" 
+                            placeholder="Search spellbook..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                        />
+                    </div>
+                    <button 
+                        onClick={addNote}
+                        className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all"
+                    >
+                        <Plus size={18} /> Scribe New Spell
+                    </button>
+                </div>
+                <div className="grid grid-cols-1 gap-6">
+                    <AnimatePresence>
+                    {recallNotes
+                        .filter(n => {
+                            const q = searchQuery.toLowerCase();
+                            return n.title.toLowerCase().includes(q) || 
+                                   n.description.toLowerCase().includes(q) ||
+                                   n.tags.some(t => t.toLowerCase().includes(q));
+                        })
+                        .map(n => (
+                            <motion.div 
+                                key={n.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                            >
+                                <SpellbookNoteCard 
+                                    note={n} 
+                                    onUpdate={updateNote} 
+                                    isExpanded={expandedNoteId === n.id}
+                                    onToggle={() => setExpandedNoteId(expandedNoteId === n.id ? null : n.id)}
+                                />
+                            </motion.div>
+                        ))
+                    }
+                    </AnimatePresence>
+                </div>
+            </motion.main>
+        ) : activeView === 'skilltree' ? (
+            <SkillTreeView 
+              playerLevel={playerLevel} 
+              completedQuestsCount={quests.filter(q => q.status === 'completed').length} 
+              unlockedNodeIds={unlockedNodeIds}
+              onUnlockNode={(id) => setUnlockedNodeIds(prev => new Set(prev).add(id))}
+            />
+        ) : activeView === 'profile' ? (
+            <ProfileView 
+              playerName="Boukensha" 
+              playerLevel={playerLevel} 
+              playerXP={playerXP} 
+              quests={quests} 
+              dailyBounties={dailyBounties} 
+              recallNotes={recallNotes}
+              unlockedNodeIds={unlockedNodeIds}
+            />
+        ) : (
+            <motion.main 
+                key="quests"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+            >
+                {/* Top HUD */}
+                <header className="bg-slate-900/20 backdrop-blur-md border-b border-slate-800/50 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className='flex items-center gap-8'>
+                        <div className="flex flex-col">
+                        <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-black mb-1">Level Status</span>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 rounded-full border border-slate-700">
+                                <span className={dailyStreak > 0 ? "text-orange-500" : "text-slate-600"}>🔥</span>
+                                <span className={`font-bold ${dailyStreak > 0 ? "text-white" : "text-slate-600"}`}>{dailyStreak}</span>
+                            </div>
+                            <span className="text-2xl font-bold text-white">LVL {playerLevel}</span>
+                            <div className="w-64 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <motion.div
+                                    className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${(playerXP / 500) * 100}%` }}
+                                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                                />
+                            </div>
+                            <span className='text-xs text-cyan-400 font-mono'>{playerXP} / 500 XP</span>
+                        </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setActiveView('active')} className={`px-4 py-2 ${activeView === 'active' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Active</button>
+                        <button onClick={() => setActiveView('completed')} className={`px-4 py-2 ${activeView === 'completed' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Vanquished</button>
+                    </div>
+                    <button
+                        onClick={() => setIsNewQuestModalOpen(true)}
+                        className="px-6 py-2.5 bg-[#020617] border border-cyan-500/50 rounded flex items-center gap-3 text-cyan-400 font-bold uppercase tracking-tighter hover:bg-cyan-500/10 transition-all shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                        <Plus size={18} /> New Quest
+                    </button>
+                </header>
+
+                {/* Quest Grid */}
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                    <AnimatePresence>
+                    {quests.filter(q => q.status === (activeView === 'active' ? 'active' : 'completed')).map((q) => (
+                        <motion.div
+                        key={q.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        layout
+                        >
+                        <QuestCard quest={q} onClick={activeView === 'active' ? () => setActiveQuest(q) : () => {}} />
+                        </motion.div>
+                    ))}
+                    </AnimatePresence>
+                </div>
+            </motion.main>
+        )}
+        </AnimatePresence>
+      </div>
+
+      <NewQuestModal isOpen={isNewQuestModalOpen} onClose={() => setIsNewQuestModalOpen(false)} onQuestCreated={addQuest} />
+      <ActiveQuestModal quest={activeQuest} isOpen={!!activeQuest} onClose={() => setActiveQuest(null)} onComplete={completeQuest} onUpdateQuest={updateQuest} />
+      <AnimatePresence>
+          {activeEncounter && (
+              <motion.div
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 50, scale: 0.9 }}
+                  className="fixed bottom-8 right-8 bg-slate-900/90 border-2 border-purple-500 rounded-lg p-6 max-w-sm shadow-2xl z-50 text-white"
+              >
+                  <p className="text-lg font-bold mb-4">{activeEncounter.text}</p>
+                  <div className="flex gap-4">
+                      <button onClick={() => { addXP(15); setActiveEncounter(null); }} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded font-bold">Claim (+15 XP)</button>
+                      <button onClick={() => setActiveEncounter(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded font-bold">Flee</button>
+                  </div>
+              </motion.div>
+          )}
+      </AnimatePresence>
+    </div>
+  );
+}
