@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'motion/react';
-import { Note } from '../types';
+import type { Note } from '../types';
 
 export function NoteCard({ note, onClick }: { note: Note; onClick: () => void }) {
   return (

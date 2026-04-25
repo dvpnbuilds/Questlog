@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'motion/react';
 import { Lock, CheckCircle } from 'lucide-react';
 

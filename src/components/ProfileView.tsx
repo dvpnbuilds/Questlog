@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'motion/react';
 import { Shield } from 'lucide-react';
 import type { Quest, Note, Bounty } from '../types';
@@ -64,10 +63,11 @@ export const ProfileView = ({
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
                 {[
                     { label: 'Quests Vanquished', value: completedQuests.length },
                     { label: 'Bounties Claimed', value: completedBounties.length },
+                    { label: 'Spells Scribed', value: recallNotes.length },
                     { label: 'Skill Points', value: skillPoints },
                 ].map(stat => (
                     <div key={stat.label} className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 text-center">

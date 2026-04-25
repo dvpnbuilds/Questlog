@@ -5,9 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, Eye, Edit3 } from 'lucide-react';
+import { Upload, Eye, Edit3 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { Note } from '../types';
+import type { Note } from '../types';
 
 interface ModalProps {
   note: Note | null;

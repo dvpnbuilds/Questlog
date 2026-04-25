@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, CheckCircle2, Eye, Edit3 } from 'lucide-react';
+import { Upload, CheckCircle2, Eye, Edit3 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Quest, Rarity } from '../types';
 

@@ -203,7 +203,7 @@ export default function App() {
         const next = prev.map(b => {
             if (b.id === id && b.status === 'active') {
                 addXP(10);
-                return { ...b, status: 'completed' };
+                return { ...b, status: 'completed' as const };
             }
             return b;
         });
@@ -223,7 +223,7 @@ export default function App() {
   };
   
   const reviveBounty = (id: string) => {
-      setDailyBounties(prev => prev.map(b => b.id === id ? { ...b, status: 'active', createdAt: Date.now() } : b));
+      setDailyBounties(prev => prev.map(b => b.id === id ? { ...b, status: 'active' as const, createdAt: Date.now() } : b));
   };
 
   useEffect(() => {
@@ -231,7 +231,7 @@ export default function App() {
           const now = Date.now();
           setDailyBounties(prev => prev.map(b => {
               if (b.status === 'active' && now > b.createdAt + 24 * 60 * 60 * 1000) {
-                  return { ...b, status: 'failed' };
+                  return { ...b, status: 'failed' as const };
               }
               return b;
           }));
@@ -247,7 +247,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-      let interval: NodeJS.Timeout;
+      let interval: ReturnType<typeof setInterval>;
       if (isGrinding) {
           // Triggers a random developer encounter every 20 minutes.
           interval = setInterval(() => {
