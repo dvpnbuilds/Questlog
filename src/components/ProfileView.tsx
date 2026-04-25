@@ -103,7 +103,7 @@ export const ProfileView = ({
                     {quests.slice(-3).reverse().map(q => (
                         <div key={q.id} className="flex justify-between p-3 bg-slate-800 rounded-lg">
                             <span className="text-white text-sm">{q.title}</span>
-                            <span className="text-cyan-400 text-sm font-mono">+{q.XP} XP</span>
+                            <span className="text-cyan-400 text-sm font-mono">+{q.xp} XP</span>
                         </div>
                     ))}
                 </div>

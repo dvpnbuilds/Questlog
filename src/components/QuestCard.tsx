@@ -6,16 +6,18 @@
 import { motion } from 'motion/react';
 import type { Quest } from '../types';
 
-const rarityColors = {
+const rarityColors: Record<string, string> = {
   Common: 'border-slate-700',
   Rare: 'border-blue-500/40',
   Epic: 'border-purple-500/40',
+  Legendary: 'border-amber-400/60',
 };
 
-const rarityTagColors = {
+const rarityTagColors: Record<string, string> = {
   Common: 'bg-slate-600',
   Rare: 'bg-blue-600',
   Epic: 'bg-purple-500',
+  Legendary: 'bg-amber-500',
 };
 
 export function QuestCard({ quest, onClick }: { quest: Quest; onClick: () => void }) {
@@ -47,7 +49,7 @@ export function QuestCard({ quest, onClick }: { quest: Quest; onClick: () => voi
       <div className="flex items-center justify-between border-t border-slate-800 pt-4 mt-auto">
         <span className="text-cyan-400/50 text-[10px] font-mono tracking-tighter">ID: {quest.id}</span>
         <span className={`font-mono text-xs ${isCompleted ? 'text-slate-600' : (quest.rarity === 'Epic' ? 'text-purple-400' : quest.rarity === 'Rare' ? 'text-blue-400' : 'text-slate-500')}`}>
-            +{quest.XP} XP
+            +{quest.xp} XP
         </span>
       </div>
     </motion.div>
