@@ -6,12 +6,13 @@ export interface Quest {
   id: string;
   title: string;
   description: string;
-  xp: number; // Corrected to lowercase to match Supabase
+  xp: number;
   category: QuestCategory | string;
   rarity: Rarity | string;
   status: QuestStatus;
   createdAt: number;
   completedAt?: number;
+  images?: string[];
 }
 
 export interface Note {

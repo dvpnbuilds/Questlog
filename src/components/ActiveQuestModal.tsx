@@ -30,7 +30,7 @@ export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQ
 
   const handleComplete = () => {
     if (!completed) {
-      onComplete(quest.id, quest.rarity);
+      onComplete(quest.id, quest.rarity as Rarity);
       setCompleted(true);
       setTimeout(onClose, 800);
     }
