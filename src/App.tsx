@@ -175,7 +175,6 @@ export default function App() {
       rarity,
       xp: XP_REWARDS[rarity],
       status: 'active',
-      created_at: Date.now(),
     };
     const { data, error } = await supabase.from('quests').insert(newQuest).select().single();
     if (error) { console.error('Failed to add quest:', error); return; }
