@@ -190,6 +190,13 @@ export default function App() {
     if (error) console.error('Failed to update quest:', error);
   };
 
+  const deleteQuest = async (id: string) => {
+    setQuests(prev => prev.filter(q => q.id !== id));
+    setActiveQuest(null);
+    const { error } = await supabase.from('quests').delete().eq('id', id);
+    if (error) console.error('Failed to delete quest:', error);
+  };
+
   const updateNote = (updatedNote: Note) => {
     setRecallNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
   };
@@ -509,7 +516,7 @@ export default function App() {
       </div>
 
       <NewQuestModal isOpen={isNewQuestModalOpen} onClose={() => setIsNewQuestModalOpen(false)} onQuestCreated={addQuest} />
-      <ActiveQuestModal quest={activeQuest} isOpen={!!activeQuest} onClose={() => setActiveQuest(null)} onComplete={completeQuest} onUpdateQuest={updateQuest} />
+      <ActiveQuestModal quest={activeQuest} isOpen={!!activeQuest} onClose={() => setActiveQuest(null)} onComplete={completeQuest} onUpdateQuest={updateQuest} onDelete={deleteQuest} />
       <AnimatePresence>
           {activeEncounter && (
               <motion.div

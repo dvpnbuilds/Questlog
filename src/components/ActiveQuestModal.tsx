@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Upload, CheckCircle2, Eye, Edit3 } from 'lucide-react';
+import { Upload, CheckCircle2, Eye, Edit3, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Quest, Rarity } from '../types';
 
@@ -11,9 +11,10 @@ interface ModalProps {
   onClose: () => void;
   onComplete: (id: string, rarity: Rarity) => void;
   onUpdateQuest: (updatedQuest: Quest) => void;
+  onDelete: (id: string) => void;
 }
 
-export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQuest }: ModalProps) {
+export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQuest, onDelete }: ModalProps) {
   const [completed, setCompleted] = useState(false);
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [description, setDescription] = useState(quest?.description || '');
@@ -118,7 +119,15 @@ export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQ
                 </div>
             </div>
 
-            <div className='flex justify-end mt-8 border-t border-slate-800 pt-6'>
+            <div className='flex justify-between mt-8 border-t border-slate-800 pt-6'>
+                <motion.button
+                  onClick={() => { if (confirm('Abandon this quest? This cannot be undone.')) onDelete(quest.id); }}
+                  className="px-4 py-3 text-sm font-bold rounded-lg flex items-center gap-2 bg-slate-800 hover:bg-red-900/50 hover:text-red-400 text-slate-400 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Trash2 size={16} /> Abandon
+                </motion.button>
                 <motion.button
                   onClick={handleComplete}
                   className={`px-8 py-3 text-lg font-bold rounded-lg flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(34,211,238,0.3)] ${completed ? 'bg-green-600' : 'bg-cyan-600'}`}
