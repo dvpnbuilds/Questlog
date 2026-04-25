@@ -1,16 +1,17 @@
 export type QuestStatus = 'active' | 'completed';
-
-export type Rarity = 'Common' | 'Rare' | 'Epic';
+export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Legendary';
+export type QuestCategory = 'Daily' | 'Mastery' | 'Architect' | 'Side Quest';
 
 export interface Quest {
   id: string;
   title: string;
   description: string;
-  rarity: Rarity;
-  XP: number;
-  category?: string;
+  xp: number; // Corrected to lowercase to match Supabase
+  category: QuestCategory | string;
+  rarity: Rarity | string;
   status: QuestStatus;
-  images?: string[];
+  createdAt: number;
+  completedAt?: number;
 }
 
 export interface Note {
@@ -19,6 +20,8 @@ export interface Note {
   description: string;
   tags: string[];
   images?: string[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface Bounty {
