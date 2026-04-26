@@ -83,6 +83,8 @@ export default function App() {
 
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingSpell, setIsCreatingSpell] = useState(false);
+  const [spellError, setSpellError] = useState<string | null>(null);
 
   useEffect(() => {
     const syncWithSupabase = async () => {
@@ -115,14 +117,19 @@ export default function App() {
     syncWithSupabase();
   }, []);
 
-  const [recallNotes, setRecallNotes] = useState<Note[]>(() => {
-    const saved = localStorage.getItem('recallNotes');
-    try {
-        return saved ? JSON.parse(saved) : [];
-    } catch {
-        return [];
-    }
-  });
+  const [recallNotes, setRecallNotes] = useState<Note[]>([]);
+
+  useEffect(() => {
+    const fetchSpells = async () => {
+      const { data, error } = await supabase
+        .from('spells')
+        .select('id, title, tags, ritual, incantation')
+        .order('id', { ascending: true });
+      if (error) { console.error('Failed to fetch spells:', error); return; }
+      if (data) setRecallNotes(data);
+    };
+    fetchSpells();
+  }, []);
 
   const [dailyBounties, setDailyBounties] = useState<Bounty[]>(() => {
     const saved = localStorage.getItem('dailyBounties');
@@ -149,10 +156,9 @@ export default function App() {
     localStorage.setItem('playerXP', playerXP.toString());
     localStorage.setItem('unlockedNodeIds', JSON.stringify(Array.from(unlockedNodeIds)));
     localStorage.setItem('dailyStreak', dailyStreak.toString());
-    localStorage.setItem('recallNotes', JSON.stringify(recallNotes));
     localStorage.setItem('dailyBounties', JSON.stringify(dailyBounties));
     localStorage.setItem('timelineEvents', JSON.stringify(timelineEvents));
-  }, [playerLevel, playerXP, unlockedNodeIds, dailyStreak, recallNotes, dailyBounties, timelineEvents]);
+  }, [playerLevel, playerXP, unlockedNodeIds, dailyStreak, dailyBounties, timelineEvents]);
 
   const XP_REWARDS: Record<Rarity, number> = { Common: 50, Rare: 100, Epic: 250, Legendary: 500 };
 
@@ -209,23 +215,39 @@ export default function App() {
     if (error) console.error('Failed to delete quest:', error);
   };
 
-  const updateNote = (updatedNote: Note) => {
+  const updateNote = async (updatedNote: Note) => {
     setRecallNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+    const { error } = await supabase.from('spells').upsert({
+      id: updatedNote.id,
+      title: updatedNote.title,
+      tags: updatedNote.tags,
+      ritual: updatedNote.ritual,
+      incantation: updatedNote.incantation,
+    });
+    if (error) console.error('Failed to save spell:', error);
   };
 
-  const addNote = () => {
-      const id = Date.now().toString();
-      const newNote: Note = {
-          id,
-          title: 'New Spell',
-          description: '',
-          tags: ['new'],
-          images: [],
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-      };
-      setRecallNotes([...recallNotes, newNote]);
-      setExpandedNoteId(id);
+  const addNote = async () => {
+    setIsCreatingSpell(true);
+    setSpellError(null);
+    try {
+      const { data, error } = await supabase
+        .from('spells')
+        .insert({ title: 'New Spell', ritual: '', incantation: '', tags: ['new'] })
+        .select('id, title, tags, ritual, incantation')
+        .single();
+      if (error) throw error;
+      if (data) {
+        setRecallNotes(prev => [...prev, data]);
+        setExpandedNoteId(data.id);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Unknown error';
+      console.error('Failed to create spell:', err);
+      setSpellError(msg);
+    } finally {
+      setIsCreatingSpell(false);
+    }
   };
 
   const deleteEvent = (id: string) => {
@@ -410,12 +432,18 @@ export default function App() {
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
                         />
                     </div>
-                    <button
-                        onClick={addNote}
-                        className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all"
-                    >
-                        <Plus size={18} /> Scribe New Spell
-                    </button>
+                    <div className="flex flex-col items-end gap-1">
+                        <button
+                            onClick={addNote}
+                            disabled={isCreatingSpell}
+                            className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            <Plus size={18} /> {isCreatingSpell ? 'Scribing...' : 'Scribe New Spell'}
+                        </button>
+                        {spellError && (
+                            <span className="text-red-400 text-xs max-w-xs text-right">{spellError}</span>
+                        )}
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 gap-6">
                     <AnimatePresence>
@@ -423,7 +451,8 @@ export default function App() {
                         .filter(n => {
                             const q = searchQuery.toLowerCase();
                             return n.title.toLowerCase().includes(q) ||
-                                   n.description.toLowerCase().includes(q) ||
+                                   n.ritual.toLowerCase().includes(q) ||
+                                   n.incantation.toLowerCase().includes(q) ||
                                    n.tags.some(t => t.toLowerCase().includes(q));
                         })
                         .map(n => (

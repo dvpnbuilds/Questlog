@@ -18,11 +18,12 @@ export interface Quest {
 export interface Note {
   id: string;
   title: string;
-  description: string;
+  ritual: string;
+  incantation: string;
   tags: string[];
   images?: string[];
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface Bounty {
