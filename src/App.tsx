@@ -14,6 +14,8 @@ import { NoticeBoardView } from './components/NoticeBoardView';
 import { SkillTreeView } from './components/SkillTreeView';
 import { ProfileView } from './components/ProfileView';
 import { supabase } from './lib/supabase';
+import { LoginScreen } from './components/LoginScreen';
+import type { Session } from '@supabase/supabase-js';
 import type { Quest, Rarity, Note, Bounty, TimelineEvent, Encounter } from './types';
 
 const ALL_REQUIRED_QUESTS: Omit<Quest, 'id' | 'createdAt'>[] = [
@@ -37,6 +39,16 @@ const ALL_REQUIRED_QUESTS: Omit<Quest, 'id' | 'createdAt'>[] = [
 ];
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const [playerLevel, setPlayerLevel] = useState<number>(() => {
     const saved = localStorage.getItem('playerLevel');
     return saved ? parseInt(saved, 10) : 1;
@@ -308,6 +320,8 @@ export default function App() {
           setTimelineEvents([]);
       }
   };
+
+  if (!session) return <LoginScreen />;
 
   return (
     <div className="flex h-screen bg-[#020617] text-slate-200 overflow-hidden font-sans border border-slate-800 md:flex-row flex-col">
