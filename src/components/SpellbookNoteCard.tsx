@@ -147,6 +147,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-purple-400 uppercase tracking-widest">The Ritual</label>
                     <button
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => insertBullet(ritualRef, 'ritual')}
                       title="Insert bullet point"
                       className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-purple-400 text-xs border border-slate-700 transition-colors"
@@ -168,6 +169,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-cyan-400 uppercase tracking-widest">The Incantation</label>
                     <button
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => insertBullet(incantationRef, 'incantation')}
                       title="Insert bullet point"
                       className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 text-xs border border-slate-700 transition-colors"

@@ -5,9 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Plus, BookOpen, User, Search } from 'lucide-react';
+import { LayoutDashboard, Plus, BookOpen, User, Search, LogOut } from 'lucide-react';
 import { QuestCard } from './components/QuestCard';
 import { SpellbookNoteCard } from './components/SpellbookNoteCard';
+import { ScribeSpellModal } from './components/ScribeSpellModal';
 import { NewQuestModal } from './components/NewQuestModal';
 import { ActiveQuestModal } from './components/ActiveQuestModal';
 import { NoticeBoardView } from './components/NoticeBoardView';
@@ -49,14 +50,8 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const [playerLevel, setPlayerLevel] = useState<number>(() => {
-    const saved = localStorage.getItem('playerLevel');
-    return saved ? parseInt(saved, 10) : 1;
-  });
-  const [playerXP, setPlayerXP] = useState<number>(() => {
-    const saved = localStorage.getItem('playerXP');
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  const [playerLevel, setPlayerLevel] = useState<number>(1);
+  const [playerXP, setPlayerXP] = useState<number>(0);
   const [dailyStreak, setDailyStreak] = useState<number>(() => {
     const saved = localStorage.getItem('dailyStreak');
     return saved ? parseInt(saved, 10) : 0;
@@ -83,8 +78,8 @@ export default function App() {
 
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingSpell, setIsCreatingSpell] = useState(false);
-  const [spellError, setSpellError] = useState<string | null>(null);
+  const [isScribeModalOpen, setIsScribeModalOpen] = useState(false);
+  const [levelUpToast, setLevelUpToast] = useState<number | null>(null);
 
   useEffect(() => {
     const syncWithSupabase = async () => {
@@ -131,6 +126,23 @@ export default function App() {
     fetchSpells();
   }, []);
 
+  useEffect(() => {
+    if (!session) return;
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('xp, level')
+        .eq('id', session.user.id)
+        .single();
+      if (error) { console.error('Failed to fetch profile:', error); return; }
+      if (data) {
+        setPlayerXP(data.xp ?? 0);
+        setPlayerLevel(data.level ?? 1);
+      }
+    };
+    fetchProfile();
+  }, [session]);
+
   const [dailyBounties, setDailyBounties] = useState<Bounty[]>(() => {
     const saved = localStorage.getItem('dailyBounties');
     try {
@@ -152,32 +164,41 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    localStorage.setItem('playerLevel', playerLevel.toString());
-    localStorage.setItem('playerXP', playerXP.toString());
     localStorage.setItem('unlockedNodeIds', JSON.stringify(Array.from(unlockedNodeIds)));
     localStorage.setItem('dailyStreak', dailyStreak.toString());
     localStorage.setItem('dailyBounties', JSON.stringify(dailyBounties));
     localStorage.setItem('timelineEvents', JSON.stringify(timelineEvents));
-  }, [playerLevel, playerXP, unlockedNodeIds, dailyStreak, dailyBounties, timelineEvents]);
+  }, [unlockedNodeIds, dailyStreak, dailyBounties, timelineEvents]);
 
   const XP_REWARDS: Record<Rarity, number> = { Common: 50, Rare: 100, Epic: 250, Legendary: 500 };
 
-  const addXP = (amount: number) => {
+  const addXP = async (amount: number) => {
     let totalXP = playerXP + amount;
     let newLevel = playerLevel;
     while (totalXP >= 500) {
-        newLevel++;
-        totalXP -= 500;
+      newLevel++;
+      totalXP -= 500;
     }
     setPlayerXP(totalXP);
     setPlayerLevel(newLevel);
+    if (newLevel > playerLevel) {
+      setLevelUpToast(newLevel);
+      setTimeout(() => setLevelUpToast(null), 3500);
+    }
+    if (session) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ xp: totalXP, level: newLevel })
+        .eq('id', session.user.id);
+      if (error) console.error('Failed to sync XP:', error);
+    }
   };
 
   const completeQuest = async (id: string, rarity: Rarity) => {
     const completedAt = Date.now();
     setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed', completedAt } : q));
     setActiveQuest(null);
-    addXP(XP_REWARDS[rarity] || 0);
+    addXP(100);
     const { error } = await supabase
       .from('quests')
       .update({ status: 'completed', completed_at: completedAt })
@@ -227,27 +248,26 @@ export default function App() {
     if (error) console.error('Failed to save spell:', error);
   };
 
-  const addNote = async () => {
-    setIsCreatingSpell(true);
-    setSpellError(null);
+  const scribeSpell = async (spell: { title: string; ritual: string; incantation: string; tags: string[] }): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('spells')
-        .insert({ title: 'New Spell', ritual: '', incantation: '', tags: ['new'] })
+        .insert(spell)
         .select('id, title, tags, ritual, incantation')
         .single();
       if (error) throw error;
-      if (data) {
-        setRecallNotes(prev => [...prev, data]);
-        setExpandedNoteId(data.id);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Unknown error';
+      if (data) setRecallNotes(prev => [...prev, data]);
+      await addXP(50);
+      return true;
+    } catch (err) {
       console.error('Failed to create spell:', err);
-      setSpellError(msg);
-    } finally {
-      setIsCreatingSpell(false);
+      return false;
     }
+  };
+
+  const addNote = () => {
+    setActiveView('spellbook');
+    setIsScribeModalOpen(true);
   };
 
   const deleteEvent = (id: string) => {
@@ -352,6 +372,19 @@ export default function App() {
         <div className="p-6 border-b border-slate-800">
             <h1 className="font-display text-2xl font-bold tracking-tighter text-white">QUEST<span className="text-cyan-400">LOG</span></h1>
         </div>
+        <div className="px-4 py-3 border-b border-slate-800">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-xs font-bold text-cyan-400">Lv. {playerLevel}</span>
+            <span className="text-[10px] text-slate-500 font-mono">{playerXP} / 500 XP</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 rounded-full"
+              animate={{ width: `${(playerXP / 500) * 100}%` }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
         <nav className="flex-1 p-4 space-y-2">
           <button
             onClick={() => setActiveView('noticeboard')}
@@ -379,8 +412,15 @@ export default function App() {
              <User size={20} /> Profile
            </button>
         </nav>
-        <div className="p-4 border-t border-slate-800">
-             <button onClick={resetData} className="text-xs text-slate-500 hover:text-red-400 transition-colors">Reset Data</button>
+        <div className="p-4 border-t border-slate-800 flex flex-col gap-3">
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="w-full flex items-center gap-3 rounded-lg p-3 font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all group"
+          >
+            <LogOut size={18} className="group-hover:translate-x-0.5 transition-transform" />
+            <span className="text-sm">Sign Out</span>
+          </button>
+          <button onClick={resetData} className="text-xs text-slate-600 hover:text-red-400 transition-colors text-left pl-1">Reset Data</button>
         </div>
       </aside>
 
@@ -432,18 +472,12 @@ export default function App() {
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
                         />
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                        <button
-                            onClick={addNote}
-                            disabled={isCreatingSpell}
-                            className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            <Plus size={18} /> {isCreatingSpell ? 'Scribing...' : 'Scribe New Spell'}
-                        </button>
-                        {spellError && (
-                            <span className="text-red-400 text-xs max-w-xs text-right">{spellError}</span>
-                        )}
-                    </div>
+                    <button
+                        onClick={() => setIsScribeModalOpen(true)}
+                        className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                    >
+                        <Plus size={18} /> Scribe New Spell
+                    </button>
                 </div>
                 <div className="grid grid-cols-1 gap-6">
                     <AnimatePresence>
@@ -576,6 +610,30 @@ export default function App() {
               </motion.div>
           )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {levelUpToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.92 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex items-center gap-4 bg-slate-900/95 border border-cyan-400/50 rounded-2xl px-6 py-4 shadow-[0_0_50px_rgba(6,182,212,0.3)] backdrop-blur-md"
+          >
+            <span className="text-2xl">⚡</span>
+            <div>
+              <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest">Level Up!</p>
+              <p className="text-white font-bold text-sm">You reached Level {levelUpToast}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <ScribeSpellModal
+        isOpen={isScribeModalOpen}
+        onClose={() => setIsScribeModalOpen(false)}
+        onSave={scribeSpell}
+      />
     </div>
   );
 }
