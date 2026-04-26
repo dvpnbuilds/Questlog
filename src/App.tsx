@@ -194,7 +194,7 @@ export default function App() {
     }
   };
 
-  const completeQuest = async (id: string, rarity: Rarity) => {
+  const completeQuest = async (id: string, _rarity: Rarity) => {
     const completedAt = Date.now();
     setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed', completedAt } : q));
     setActiveQuest(null);
