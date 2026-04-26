@@ -18,11 +18,11 @@ interface ModalProps {
 
 export function NoteModal({ note, isOpen, onClose, onUpdateNote }: ModalProps) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
-  const [description, setDescription] = useState(note?.description || '');
+  const [description, setDescription] = useState(note?.ritual || '');
   const [images, setImages] = useState<string[]>(note?.images || []);
 
   useEffect(() => {
-    setDescription(note?.description || '');
+    setDescription(note?.ritual || '');
     setImages(note?.images || []);
     setMode('edit');
   }, [note]);
@@ -37,7 +37,7 @@ export function NoteModal({ note, isOpen, onClose, onUpdateNote }: ModalProps) {
         const base64String = reader.result as string;
         const newImages = [...images, base64String];
         setImages(newImages);
-        onUpdateNote({ ...note, description, images: newImages });
+        onUpdateNote({ ...note, ritual: description, images: newImages });
       };
       reader.readAsDataURL(file);
     }
@@ -45,7 +45,7 @@ export function NoteModal({ note, isOpen, onClose, onUpdateNote }: ModalProps) {
 
   const updateDescription = (newDesc: string) => {
     setDescription(newDesc);
-    onUpdateNote({ ...note, description: newDesc, images });
+    onUpdateNote({ ...note, ritual: newDesc, images });
   };
 
   return (

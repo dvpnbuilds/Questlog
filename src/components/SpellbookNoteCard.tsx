@@ -18,7 +18,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
   const ritualRef = useRef<HTMLTextAreaElement>(null);
   const incantationRef = useRef<HTMLTextAreaElement>(null);
 
-  const insertBullet = (ref: React.RefObject<HTMLTextAreaElement>, field: 'ritual' | 'incantation') => {
+  const insertBullet = (ref: React.RefObject<HTMLTextAreaElement | null>, field: 'ritual' | 'incantation') => {
     const ta = ref.current;
     if (!ta) return;
     const start = ta.selectionStart;

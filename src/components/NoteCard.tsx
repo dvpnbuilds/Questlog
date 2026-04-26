@@ -24,7 +24,7 @@ export function NoteCard({ note, onClick }: { note: Note; onClick: () => void })
         </div>
       </div>
       <p className="text-slate-400 text-xs font-sans line-clamp-3">
-        {note.description}
+        {note.ritual}
       </p>
     </motion.div>
   );
