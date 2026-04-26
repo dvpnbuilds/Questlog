@@ -5,11 +5,13 @@ import { ChevronDown, Upload, Eye, Edit3, List, Copy, Check } from 'lucide-react
 import ReactMarkdown from 'react-markdown';
 import type { Note } from '../types';
 
-export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
+export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopyXP, onTagClick }: {
   note: Note;
   onUpdate: (n: Note) => void;
   isExpanded: boolean;
   onToggle: () => void;
+  onCopyXP?: () => void;
+  onTagClick?: (tag: string) => void;
 }) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [previewTab, setPreviewTab] = useState<'ritual' | 'incantation'>('ritual');
@@ -42,6 +44,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
     navigator.clipboard.writeText(note.incantation).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      onCopyXP?.();
     });
   };
 
@@ -84,7 +87,11 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
           )}
           <div className="flex flex-wrap gap-2">
             {note.tags.map(tag => (
-              <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">#{tag}</span>
+              <span
+                key={tag}
+                onClick={(e) => { e.stopPropagation(); onTagClick?.(tag); }}
+                className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 cursor-pointer hover:bg-purple-500/30 transition-colors"
+              >#{tag}</span>
             ))}
           </div>
         </div>
@@ -168,14 +175,23 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle }: {
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-cyan-400 uppercase tracking-widest">The Incantation</label>
-                    <button
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => insertBullet(incantationRef, 'incantation')}
-                      title="Insert bullet point"
-                      className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 text-xs border border-slate-700 transition-colors"
-                    >
-                      <List size={12} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => insertBullet(incantationRef, 'incantation')}
+                        title="Insert bullet point"
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 text-xs border border-slate-700 transition-colors"
+                      >
+                        <List size={12} />
+                      </button>
+                      <button
+                        onClick={copyIncantation}
+                        title="Copy incantation"
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${copied ? 'bg-green-600/20 text-green-400 border-green-500/40' : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-cyan-400 border-slate-700'}`}
+                      >
+                        {copied ? <Check size={12} /> : <Copy size={12} />}
+                      </button>
+                    </div>
                   </div>
                   <textarea
                     ref={incantationRef}

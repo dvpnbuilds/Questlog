@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Plus, BookOpen, User, Search, LogOut } from 'lucide-react';
+import { LayoutDashboard, Plus, BookOpen, User, Search, LogOut, X } from 'lucide-react';
 import { QuestCard } from './components/QuestCard';
 import { SpellbookNoteCard } from './components/SpellbookNoteCard';
 import { ScribeSpellModal } from './components/ScribeSpellModal';
+import { LibrarianChat } from './components/LibrarianChat';
 import { NewQuestModal } from './components/NewQuestModal';
 import { ActiveQuestModal } from './components/ActiveQuestModal';
 import { NoticeBoardView } from './components/NoticeBoardView';
@@ -80,6 +81,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isScribeModalOpen, setIsScribeModalOpen] = useState(false);
   const [levelUpToast, setLevelUpToast] = useState<number | null>(null);
+  const copiedSpellXPGranted = useRef<Set<string>>(new Set());
+
+  const handleSpellCopy = (spellId: string) => {
+    if (!copiedSpellXPGranted.current.has(spellId)) {
+      copiedSpellXPGranted.current.add(spellId);
+      addXP(5);
+    }
+  };
 
   useEffect(() => {
     const syncWithSupabase = async () => {
@@ -162,6 +171,7 @@ export default function App() {
   });
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem('unlockedNodeIds', JSON.stringify(Array.from(unlockedNodeIds)));
@@ -461,52 +471,114 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
                 className="p-8"
             >
-                <div className="flex justify-between items-center mb-8 gap-4">
+                {/* Search bar row */}
+                <div className="flex flex-col gap-3 mb-8">
+                  <div className="flex justify-between items-center gap-4">
                     <div className="relative flex-1 max-w-2xl">
-                        <Search className="absolute left-4 top-3.5 text-cyan-400/50" />
-                        <input
-                            type="text"
-                            placeholder="Search spellbook..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
-                        />
+                      <Search className="absolute left-4 top-3.5 text-cyan-400/50" size={18} />
+                      <input
+                        type="text"
+                        placeholder="Search spellbook..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 pr-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                      />
+                      {(searchQuery || selectedTag) && (
+                        <button
+                          onClick={() => { setSearchQuery(''); setSelectedTag(null); }}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                          title="Clear filters"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
                     </div>
                     <button
-                        onClick={() => setIsScribeModalOpen(true)}
-                        className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                      onClick={() => setIsScribeModalOpen(true)}
+                      className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
                     >
-                        <Plus size={18} /> Scribe New Spell
+                      <Plus size={18} /> Scribe New Spell
                     </button>
+                  </div>
+                  {selectedTag && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="flex items-center gap-2"
+                    >
+                      <span className="text-xs text-slate-500">Filtering by:</span>
+                      <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">
+                        #{selectedTag}
+                        <button onClick={() => setSelectedTag(null)} className="text-purple-400 hover:text-white leading-none ml-0.5">×</button>
+                      </span>
+                    </motion.div>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 gap-6">
-                    <AnimatePresence>
-                    {recallNotes
-                        .filter(n => {
-                            const q = searchQuery.toLowerCase();
-                            return n.title.toLowerCase().includes(q) ||
-                                   n.ritual.toLowerCase().includes(q) ||
-                                   n.incantation.toLowerCase().includes(q) ||
-                                   n.tags.some(t => t.toLowerCase().includes(q));
-                        })
-                        .map(n => (
-                            <motion.div
-                                key={n.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <SpellbookNoteCard
-                                    note={n}
-                                    onUpdate={updateNote}
-                                    isExpanded={expandedNoteId === n.id}
-                                    onToggle={() => setExpandedNoteId(expandedNoteId === n.id ? null : n.id)}
-                                />
-                            </motion.div>
-                        ))
-                    }
-                    </AnimatePresence>
-                </div>
+
+                {/* Spell list or empty state */}
+                {(() => {
+                  const filtered = recallNotes.filter(n => {
+                    const q = searchQuery.toLowerCase();
+                    const matchesSearch = !q ||
+                      n.title.toLowerCase().includes(q) ||
+                      n.ritual.toLowerCase().includes(q) ||
+                      n.incantation.toLowerCase().includes(q) ||
+                      n.tags.some(t => t.toLowerCase().includes(q));
+                    const matchesTag = !selectedTag || n.tags.includes(selectedTag);
+                    return matchesSearch && matchesTag;
+                  });
+
+                  if (filtered.length === 0) {
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col items-center justify-center py-28 text-center"
+                      >
+                        <div className="text-6xl mb-6 text-slate-700 select-none">✦</div>
+                        <h3 className="text-xl font-bold text-slate-500 mb-2">No Spells Found in this Realm</h3>
+                        <p className="text-slate-600 text-sm mb-4">
+                          {(searchQuery || selectedTag)
+                            ? 'Try a different search or clear your filters.'
+                            : 'Scribe your first spell to begin.'}
+                        </p>
+                        {(searchQuery || selectedTag) && (
+                          <button
+                            onClick={() => { setSearchQuery(''); setSelectedTag(null); }}
+                            className="text-xs text-cyan-500 hover:text-cyan-300 transition-colors underline underline-offset-2"
+                          >
+                            Clear filters
+                          </button>
+                        )}
+                      </motion.div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 gap-6">
+                      <AnimatePresence>
+                        {filtered.map(n => (
+                          <motion.div
+                            key={n.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                          >
+                            <SpellbookNoteCard
+                              note={n}
+                              onUpdate={updateNote}
+                              isExpanded={expandedNoteId === n.id}
+                              onToggle={() => setExpandedNoteId(expandedNoteId === n.id ? null : n.id)}
+                              onCopyXP={() => handleSpellCopy(n.id)}
+                              onTagClick={(tag) => setSelectedTag(tag)}
+                            />
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })()}
             </motion.main>
         ) : activeView === 'skilltree' ? (
             <SkillTreeView
@@ -634,6 +706,8 @@ export default function App() {
         onClose={() => setIsScribeModalOpen(false)}
         onSave={scribeSpell}
       />
+
+      <LibrarianChat spells={recallNotes} />
     </div>
   );
 }
