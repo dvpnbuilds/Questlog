@@ -3,17 +3,19 @@ import { Shield } from 'lucide-react';
 import type { Quest, Note, Bounty } from '../types';
 import { CORE_PATH, PATH_VIBE_CODER, PATH_AI_SPECIALIST } from './SkillTreeView';
 
-export const ProfileView = ({ 
-    playerName, 
-    playerLevel, 
-    playerXP, 
-    quests, 
-    dailyBounties, 
+export const ProfileView = ({
+    playerName,
+    playerEmail,
+    playerLevel,
+    playerXP,
+    quests,
+    dailyBounties,
     recallNotes,
     unlockedNodeIds
-}: { 
-    playerName: string, 
-    playerLevel: number, 
+}: {
+    playerName: string,
+    playerEmail: string | null,
+    playerLevel: number,
     playerXP: number,
     quests: Quest[],
     dailyBounties: Bounty[],
@@ -44,6 +46,9 @@ export const ProfileView = ({
                 <div>
                     <h2 className="text-3xl font-bold text-white tracking-tight">{playerName}</h2>
                     <p className="text-cyan-400 text-lg font-bold tracking-wider">{rank}-Rank Boukensha</p>
+                    {playerEmail && (
+                        <p className="text-slate-500 text-sm mt-1">{playerEmail}</p>
+                    )}
                 </div>
             </div>
 

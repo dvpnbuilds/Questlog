@@ -383,6 +383,10 @@ export default function App() {
       <aside className="hidden md:flex w-64 border-r border-cyan-500/30 bg-slate-900/40 backdrop-blur-xl flex-col shadow-[4px_0_24px_rgba(6,182,212,0.1)]">
         <div className="p-6 border-b border-slate-800">
             <h1 className="font-display text-2xl font-bold tracking-tighter text-white">QUEST<span className="text-cyan-400">LOG</span></h1>
+            <p className="text-sm font-semibold text-white mt-2 truncate">
+              {session?.user.user_metadata?.full_name || 'Guild Member'}
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">{session?.user.email}</p>
         </div>
         <div className="px-4 py-3 border-b border-slate-800">
           <div className="flex justify-between items-center mb-1.5">
@@ -598,7 +602,8 @@ export default function App() {
             />
         ) : activeView === 'profile' ? (
             <ProfileView
-              playerName="Boukensha"
+              playerName={session?.user.user_metadata?.full_name || session?.user.email || 'Guild Member'}
+              playerEmail={session?.user.email ?? null}
               playerLevel={playerLevel}
               playerXP={playerXP}
               quests={quests}
