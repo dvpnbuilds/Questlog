@@ -5,10 +5,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, Plus, BookOpen, User, Search, LogOut, X } from 'lucide-react';
+import { LayoutDashboard, Plus, BookOpen, User, Search, LogOut, X, Sparkles } from 'lucide-react';
 import { QuestCard } from './components/QuestCard';
 import { SpellbookNoteCard } from './components/SpellbookNoteCard';
 import { ScribeSpellModal } from './components/ScribeSpellModal';
+import { SummonArchitectModal } from './components/SummonArchitectModal';
 import { LibrarianChat } from './components/LibrarianChat';
 import { NewQuestModal } from './components/NewQuestModal';
 import { ActiveQuestModal } from './components/ActiveQuestModal';
@@ -80,6 +81,7 @@ export default function App() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScribeModalOpen, setIsScribeModalOpen] = useState(false);
+  const [isSummonModalOpen, setIsSummonModalOpen] = useState(false);
   const [levelUpToast, setLevelUpToast] = useState<number | null>(null);
   const copiedSpellXPGranted = useRef<Set<string>>(new Set());
 
@@ -424,6 +426,13 @@ export default function App() {
         </nav>
         <div className="p-4 border-t border-slate-800 flex flex-col gap-3">
           <button
+            onClick={() => setIsSummonModalOpen(true)}
+            className="w-full flex items-center gap-3 rounded-lg p-3 font-bold text-violet-400 border border-violet-500/40 hover:bg-violet-500/10 hover:border-violet-400 hover:shadow-[0_0_18px_rgba(139,92,246,0.2)] transition-all group"
+          >
+            <Sparkles size={18} className="group-hover:scale-110 transition-transform" />
+            <span className="text-sm tracking-wide">Summon Architect</span>
+          </button>
+          <button
             onClick={() => supabase.auth.signOut()}
             className="w-full flex items-center gap-3 rounded-lg p-3 font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all group"
           >
@@ -705,6 +714,10 @@ export default function App() {
         isOpen={isScribeModalOpen}
         onClose={() => setIsScribeModalOpen(false)}
         onSave={scribeSpell}
+      />
+      <SummonArchitectModal
+        isOpen={isSummonModalOpen}
+        onClose={() => setIsSummonModalOpen(false)}
       />
 
       <LibrarianChat spells={recallNotes} />

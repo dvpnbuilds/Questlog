@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { LogIn, UserPlus, Globe } from 'lucide-react';
+import { LogIn, UserPlus, Globe, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function LoginScreen() {
@@ -8,6 +8,7 @@ export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -27,6 +28,17 @@ export function LoginScreen() {
       setMessage('Check your email to confirm your account.');
     }
     setIsLoading(false);
+  };
+
+  const handleDemoLogin = async () => {
+    setIsDemoLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: 'demo@dvpnbuilds.com',
+      password: 'showcasedemo',
+    });
+    if (error) setError(error.message);
+    setIsDemoLoading(false);
   };
 
   const handleGoogleAuth = async () => {
@@ -133,6 +145,16 @@ export function LoginScreen() {
           >
             <Globe size={16} />
             Continue with Google
+          </button>
+
+          {/* Demo Login */}
+          <button
+            onClick={handleDemoLogin}
+            disabled={isDemoLoading}
+            className="w-full mt-3 flex items-center justify-center gap-3 py-3 bg-transparent border border-violet-500/40 rounded-lg text-violet-400 font-bold uppercase tracking-tighter hover:bg-violet-500/10 hover:border-violet-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Eye size={16} />
+            {isDemoLoading ? 'Loading Demo...' : 'View Demo'}
           </button>
         </div>
 
