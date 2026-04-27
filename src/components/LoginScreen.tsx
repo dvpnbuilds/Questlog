@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 
 export function LoginScreen() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +21,15 @@ export function LoginScreen() {
 
     const { error } = mode === 'signin'
       ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
+      : await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              full_name: name.trim(),
+            },
+          },
+        });
 
     if (error) {
       setError(error.message);
@@ -73,7 +82,7 @@ export function LoginScreen() {
           {/* Mode toggle */}
           <div className="flex rounded-lg overflow-hidden border border-slate-800 mb-8">
             <button
-              onClick={() => { setMode('signin'); setError(null); setMessage(null); }}
+              onClick={() => { setMode('signin'); setName(''); setError(null); setMessage(null); }}
               className={`flex-1 py-2.5 text-sm font-bold tracking-wider uppercase transition-all ${mode === 'signin' ? 'bg-cyan-500/10 text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500 hover:text-slate-300'}`}
             >
               Sign In
@@ -88,6 +97,21 @@ export function LoginScreen() {
 
           {/* Email/Password form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
+            {mode === 'signup' && (
+              <div>
+                <label className="text-[10px] text-cyan-400 uppercase tracking-widest font-black block mb-1.5">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="Your name"
+                  className="w-full bg-slate-950/80 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 transition-colors text-sm"
+                />
+              </div>
+            )}
             <div>
               <label className="text-[10px] text-cyan-400 uppercase tracking-widest font-black block mb-1.5">
                 Email
