@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Check, Trash2, RotateCcw, X, Target } from 'lucide-react';
 import type { Bounty, TimelineEvent } from '../types';
 
+type ViewName = 'noticeboard' | 'active' | 'completed' | 'spellbook' | 'skilltree' | 'profile';
+
 interface Props {
     dailyBounties: Bounty[];
     addBounty: (title: string) => void;
@@ -16,7 +18,7 @@ interface Props {
     toggleTimelineEvent: (id: string) => void;
     isGrinding: boolean;
     setIsGrinding: (value: boolean) => void;
-    setActiveView: (view: any) => void;
+    setActiveView: (view: ViewName) => void;
     setIsNewQuestModalOpen: (value: boolean) => void;
     addNote: () => void;
 }

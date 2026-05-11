@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { LogIn, UserPlus, Globe, Eye } from 'lucide-react';
+import { LogIn, UserPlus, Globe, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function LoginScreen() {
+  const demoEmail = import.meta.env.VITE_DEMO_EMAIL as string | undefined;
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -13,20 +14,32 @@ export function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const syncSignupToGhl = async (signupEmail: string, firstName: string) => {
+    const { error: ghlError } = await supabase.functions.invoke('ghl-webhook', {
+      body: {
+        email: signupEmail,
+        first_name: firstName,
+      },
+    });
+    if (ghlError) console.error('Failed to sync signup to GHL:', ghlError.message);
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
-    const { error } = mode === 'signin'
-      ? await supabase.auth.signInWithPassword({ email, password })
+    const normalizedEmail = email.trim();
+    const firstName = name.trim();
+    const { data, error } = mode === 'signin'
+      ? await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
       : await supabase.auth.signUp({
-          email: email.trim(),
+          email: normalizedEmail,
           password,
           options: {
             data: {
-              full_name: name.trim(),
+              full_name: firstName,
             },
           },
         });
@@ -34,19 +47,24 @@ export function LoginScreen() {
     if (error) {
       setError(error.message);
     } else if (mode === 'signup') {
+      if (data.session) void syncSignupToGhl(normalizedEmail, firstName);
       setMessage('Check your email to confirm your account.');
     }
     setIsLoading(false);
   };
 
   const handleDemoLogin = async () => {
+    if (!demoEmail) return;
     setIsDemoLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: 'demo@dvpnbuilds.com',
-      password: 'showcasedemo',
+    const { error } = await supabase.auth.signInWithOtp({
+      email: demoEmail,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
     });
     if (error) setError(error.message);
+    else setMessage('Check your email for a demo sign-in link.');
     setIsDemoLoading(false);
   };
 
@@ -172,14 +190,16 @@ export function LoginScreen() {
           </button>
 
           {/* Demo Login */}
-          <button
-            onClick={handleDemoLogin}
-            disabled={isDemoLoading}
-            className="w-full mt-3 flex items-center justify-center gap-3 py-3 bg-transparent border border-violet-500/40 rounded-lg text-violet-400 font-bold uppercase tracking-tighter hover:bg-violet-500/10 hover:border-violet-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Eye size={16} />
-            {isDemoLoading ? 'Loading Demo...' : 'View Demo'}
-          </button>
+          {demoEmail && (
+            <button
+              onClick={handleDemoLogin}
+              disabled={isDemoLoading}
+              className="w-full mt-3 flex items-center justify-center gap-3 py-3 bg-transparent border border-violet-500/40 rounded-lg text-violet-400 font-bold uppercase tracking-tighter hover:bg-violet-500/10 hover:border-violet-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Mail size={16} />
+              {isDemoLoading ? 'Sending Demo Link...' : 'Email Demo Link'}
+            </button>
+          )}
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-6 tracking-wide">

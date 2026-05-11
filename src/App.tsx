@@ -41,6 +41,15 @@ const ALL_REQUIRED_QUESTS: Omit<Quest, 'id' | 'createdAt'>[] = [
     { title: 'Performance Optimization', description: 'Make it fast.', category: 'Standard', rarity: 'Common', xp: 100, status: 'active' },
 ];
 
+const RANDOM_ENCOUNTERS: Encounter[] = [
+  { id: '1', text: '💧 A Water Elemental demands a tribute! Drink a glass of water.' },
+  { id: '2', text: '🧘‍♂️ A wandering monk casts Stiff Neck. Fix your posture and stretch!' },
+  { id: '3', text: '💾 A shadowy rogue whispers: When was your last save/commit?' },
+  { id: '4', text: '🦆 A mystical Rubber Duck appears. Explain your current task out loud to it.' },
+  { id: '5', text: '👹 The Scope Creep Goblin hisses: Add one more feature! Resist the urge and stay focused.' },
+  { id: '6', text: '👁️ A fairy casts Screen Glare! Look 20 feet away for 20 seconds.' },
+];
+
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
 
@@ -69,15 +78,6 @@ export default function App() {
   const [isGrinding, setIsGrinding] = useState(false);
   const [activeEncounter, setActiveEncounter] = useState<Encounter | null>(null);
 
-  const randomEncounters: Encounter[] = [
-    { id: '1', text: '💧 A Water Elemental demands a tribute! Drink a glass of water.' },
-    { id: '2', text: '🧘‍♂️ A wandering monk casts Stiff Neck. Fix your posture and stretch!' },
-    { id: '3', text: '💾 A shadowy rogue whispers: When was your last save/commit?' },
-    { id: '4', text: '🦆 A mystical Rubber Duck appears. Explain your current task out loud to it.' },
-    { id: '5', text: '👹 The Scope Creep Goblin hisses: Add one more feature! Resist the urge and stay focused.' },
-    { id: '6', text: '👁️ A fairy casts Screen Glare! Look 20 feet away for 20 seconds.' },
-  ];
-
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isScribeModalOpen, setIsScribeModalOpen] = useState(false);
@@ -93,12 +93,19 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (!session) {
+      setQuests([]);
+      setIsLoading(false);
+      return;
+    }
+
     const syncWithSupabase = async () => {
         setIsLoading(true);
         try {
             const { data, error } = await supabase
                 .from('quests')
                 .select('*')
+                .eq('user_id', session.user.id)
                 .order('created_at', { ascending: true });
 
             if (error) throw error;
@@ -108,7 +115,7 @@ export default function App() {
             } else {
                 const { data: seededData, error: seedError } = await supabase
                     .from('quests')
-                    .insert(ALL_REQUIRED_QUESTS)
+                    .insert(ALL_REQUIRED_QUESTS.map((quest) => ({ ...quest, user_id: session.user.id })))
                     .select();
 
                 if (seedError) throw seedError;
@@ -121,21 +128,35 @@ export default function App() {
         }
     };
     syncWithSupabase();
-  }, []);
+  }, [session]);
 
   const [recallNotes, setRecallNotes] = useState<Note[]>([]);
 
   useEffect(() => {
+    if (!session) {
+      setRecallNotes([]);
+      return;
+    }
+
     const fetchSpells = async () => {
       const { data, error } = await supabase
         .from('spells')
         .select('id, title, tags, ritual, incantation')
+        .eq('user_id', session.user.id)
         .order('id', { ascending: true });
       if (error) { console.error('Failed to fetch spells:', error); return; }
-      if (data) setRecallNotes(data);
+      if (data) {
+        setRecallNotes(data.map(spell => ({
+          id: spell.id,
+          title: spell.title ?? 'Untitled Spell',
+          tags: Array.isArray(spell.tags) ? spell.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+          ritual: spell.ritual ?? '',
+          incantation: spell.incantation ?? '',
+        })));
+      }
     };
     fetchSpells();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (!session) return;
@@ -206,7 +227,8 @@ export default function App() {
     }
   };
 
-  const completeQuest = async (id: string, _rarity: Rarity) => {
+  const completeQuest = async (id: string) => {
+    if (!session) return;
     const completedAt = Date.now();
     setQuests(prev => prev.map(q => q.id === id ? { ...q, status: 'completed', completedAt } : q));
     setActiveQuest(null);
@@ -214,11 +236,13 @@ export default function App() {
     const { error } = await supabase
       .from('quests')
       .update({ status: 'completed', completed_at: completedAt })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', session.user.id);
     if (error) console.error('Failed to complete quest:', error);
   };
 
   const addQuest = async (title: string, rarity: Rarity) => {
+    if (!session) return;
     const newQuest = {
       title,
       description: 'A newly created quest.',
@@ -226,6 +250,7 @@ export default function App() {
       rarity,
       xp: XP_REWARDS[rarity],
       status: 'active',
+      user_id: session.user.id,
     };
     const { data, error } = await supabase.from('quests').insert(newQuest).select().single();
     if (error) { console.error('Failed to add quest:', error); return; }
@@ -233,25 +258,30 @@ export default function App() {
   };
 
   const updateQuest = async (updatedQuest: Quest) => {
+    if (!session) return;
     setQuests(prev => prev.map(q => q.id === updatedQuest.id ? updatedQuest : q));
     const { error } = await supabase
       .from('quests')
       .update({ description: updatedQuest.description, images: updatedQuest.images })
-      .eq('id', updatedQuest.id);
+      .eq('id', updatedQuest.id)
+      .eq('user_id', session.user.id);
     if (error) console.error('Failed to update quest:', error);
   };
 
   const deleteQuest = async (id: string) => {
+    if (!session) return;
     setQuests(prev => prev.filter(q => q.id !== id));
     setActiveQuest(null);
-    const { error } = await supabase.from('quests').delete().eq('id', id);
+    const { error } = await supabase.from('quests').delete().eq('id', id).eq('user_id', session.user.id);
     if (error) console.error('Failed to delete quest:', error);
   };
 
   const updateNote = async (updatedNote: Note) => {
+    if (!session) return;
     setRecallNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
     const { error } = await supabase.from('spells').upsert({
       id: updatedNote.id,
+      user_id: session.user.id,
       title: updatedNote.title,
       tags: updatedNote.tags,
       ritual: updatedNote.ritual,
@@ -261,10 +291,11 @@ export default function App() {
   };
 
   const scribeSpell = async (spell: { title: string; ritual: string; incantation: string; tags: string[] }): Promise<boolean> => {
+    if (!session) return false;
     try {
       const { data, error } = await supabase
         .from('spells')
-        .insert(spell)
+        .insert({ ...spell, user_id: session.user.id })
         .select('id, title, tags, ritual, incantation')
         .single();
       if (error) throw error;
@@ -355,7 +386,7 @@ export default function App() {
       let interval: ReturnType<typeof setInterval>;
       if (isGrinding) {
           interval = setInterval(() => {
-              const random = randomEncounters[Math.floor(Math.random() * randomEncounters.length)];
+              const random = RANDOM_ENCOUNTERS[Math.floor(Math.random() * RANDOM_ENCOUNTERS.length)];
               setActiveEncounter(random);
           }, 20 * 60 * 1000);
       }

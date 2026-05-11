@@ -5,6 +5,9 @@ import { ChevronDown, Upload, Eye, Edit3, List, Copy, Check } from 'lucide-react
 import ReactMarkdown from 'react-markdown';
 import type { Note } from '../types';
 
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
 export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopyXP, onTagClick }: {
   note: Note;
   onUpdate: (n: Note) => void;
@@ -51,6 +54,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) return;
       const reader = new FileReader();
       reader.onloadend = () => {
         onUpdate({ ...note, images: [...(note.images || []), reader.result as string] });
@@ -231,7 +235,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                       className="spell-prose w-full min-h-[300px] p-6 text-slate-300 text-base rounded-lg bg-slate-900/30 border border-slate-700/50"
                     >
                       {note.ritual
-                        ? <ReactMarkdown>{note.ritual}</ReactMarkdown>
+                        ? <ReactMarkdown skipHtml>{note.ritual}</ReactMarkdown>
                         : <p style={{ whiteSpace: 'normal' }} className="text-slate-600 italic text-sm">No ritual scribed.</p>
                       }
                     </motion.div>
@@ -253,7 +257,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                       </button>
                       <div className="spell-prose spell-incantation w-full min-h-[300px] bg-slate-950 border border-cyan-900/50 rounded-lg p-5 pr-24 text-cyan-300 font-mono text-sm leading-relaxed shadow-[inset_0_0_30px_rgba(6,182,212,0.03)]">
                         {note.incantation
-                          ? <ReactMarkdown>{note.incantation}</ReactMarkdown>
+                          ? <ReactMarkdown skipHtml>{note.incantation}</ReactMarkdown>
                           : <p style={{ whiteSpace: 'normal' }} className="text-slate-600 italic">No incantation scribed.</p>
                         }
                       </div>
@@ -272,7 +276,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                 <label className="w-16 h-16 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500 hover:border-cyan-500/50 cursor-pointer transition-colors">
                   <Upload size={16} />
                   <span className="text-[8px] uppercase font-bold">Add</span>
-                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleFileChange} className="hidden" />
                 </label>
               </div>
             </div>

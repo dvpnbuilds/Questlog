@@ -4,6 +4,9 @@ import { BookMarked, X, Send, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Note } from '../types';
 
+const MAX_MESSAGE_CHARS = 1000;
+const MAX_HISTORY_MESSAGES = 8;
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -26,7 +29,7 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
   }, [isOpen]);
 
   const sendMessage = async () => {
-    const text = input.trim();
+    const text = input.trim().slice(0, MAX_MESSAGE_CHARS);
     if (!text || isLoading) return;
 
     const userMsg: Message = { role: 'user', content: text };
@@ -38,8 +41,10 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
       const { data, error } = await supabase.functions.invoke('librarian', {
         body: {
           message: text,
-          spells: spells.map(s => ({ title: s.title, ritual: s.ritual, incantation: s.incantation })),
-          history: messages,
+          history: messages.slice(-MAX_HISTORY_MESSAGES).map((msg) => ({
+            role: msg.role,
+            content: msg.content.slice(0, MAX_MESSAGE_CHARS),
+          })),
         },
       });
 
@@ -173,7 +178,8 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
                 <input
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => setInput(e.target.value.slice(0, MAX_MESSAGE_CHARS))}
+                  maxLength={MAX_MESSAGE_CHARS}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();

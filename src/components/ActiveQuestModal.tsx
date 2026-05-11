@@ -5,6 +5,9 @@ import { Upload, CheckCircle2, Eye, Edit3, Trash2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Quest, Rarity } from '../types';
 
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
 interface ModalProps {
   quest: Quest | null;
   isOpen: boolean;
@@ -40,6 +43,7 @@ export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQ
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) return;
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
@@ -99,7 +103,7 @@ export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQ
                 />
             ) : (
                 <div className="w-full min-h-[40vh] p-6 text-slate-300 font-sans text-base leading-relaxed overflow-y-auto prose prose-invert prose-cyan max-w-none">
-                    <ReactMarkdown>{description}</ReactMarkdown>
+                    <ReactMarkdown skipHtml>{description}</ReactMarkdown>
                 </div>
             )}
             
@@ -114,7 +118,7 @@ export function ActiveQuestModal({ quest, isOpen, onClose, onComplete, onUpdateQ
                     <label className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors cursor-pointer">
                         <Upload size={20} className='mb-1'/>
                         <span className='text-[10px] font-bold uppercase'>Upload</span>
-                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleFileChange} className="hidden" />
                     </label>
                 </div>
             </div>
