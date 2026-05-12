@@ -409,9 +409,9 @@ export default function App() {
   if (!session) return <LoginScreen />;
 
   return (
-    <div className="flex h-screen bg-[#020617] text-slate-200 overflow-hidden font-sans border border-slate-800 md:flex-row flex-col">
+    <div className="flex h-dvh bg-[#020617] text-slate-200 overflow-hidden font-sans lg:flex-row flex-col">
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 border-r border-cyan-500/30 bg-slate-900/40 backdrop-blur-xl flex-col shadow-[4px_0_24px_rgba(6,182,212,0.1)]">
+      <aside className="hidden lg:flex w-64 border-r border-cyan-500/30 bg-slate-900/40 backdrop-blur-xl flex-col overflow-y-auto shadow-[4px_0_24px_rgba(6,182,212,0.1)]">
         <div className="p-6 border-b border-slate-800">
             <h1 className="font-display text-2xl font-bold tracking-tighter text-white">QUEST<span className="text-cyan-400">LOG</span></h1>
             <p className="text-sm font-semibold text-white mt-2 truncate">
@@ -432,7 +432,7 @@ export default function App() {
             />
           </div>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 min-h-0 p-4 space-y-2">
           <button
             onClick={() => setActiveView('noticeboard')}
             className={`w-full flex items-center gap-3 rounded-lg p-3 font-medium transition-all ${activeView === 'noticeboard' ? 'bg-cyan-500/10 border border-cyan-500/50 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/50'}`}>
@@ -479,16 +479,16 @@ export default function App() {
       </aside>
 
       {/* Mobile Nav */}
-      <nav className="md:hidden flex justify-between items-center bg-slate-950 border-t border-slate-800 p-2">
-        <button onClick={() => setActiveView('noticeboard')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'noticeboard' ? 'text-cyan-400' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px]">Board</span></button>
-        <button onClick={() => setActiveView('active')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'active' ? 'text-cyan-400' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px]">Quests</span></button>
-        <button onClick={() => setActiveView('spellbook')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'spellbook' ? 'text-cyan-400' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px]">Spell</span></button>
-        <button onClick={() => setActiveView('skilltree')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'skilltree' ? 'text-cyan-400' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px]">Skills</span></button>
-        <button onClick={() => setActiveView('profile')} className={`flex flex-col items-center gap-1 p-2 ${activeView === 'profile' ? 'text-cyan-400' : 'text-slate-500'}`}><User size={20}/> <span className="text-[10px]">Profile</span></button>
+      <nav className="lg:hidden fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-800 bg-slate-950/95 px-1 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
+        <button onClick={() => setActiveView('noticeboard')} className={`flex min-w-0 flex-col items-center gap-1 rounded-lg p-2 ${activeView === 'noticeboard' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px] leading-none">Board</span></button>
+        <button onClick={() => setActiveView('active')} className={`flex min-w-0 flex-col items-center gap-1 rounded-lg p-2 ${activeView === 'active' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500'}`}><LayoutDashboard size={20}/> <span className="text-[10px] leading-none">Quests</span></button>
+        <button onClick={() => setActiveView('spellbook')} className={`flex min-w-0 flex-col items-center gap-1 rounded-lg p-2 ${activeView === 'spellbook' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px] leading-none">Spells</span></button>
+        <button onClick={() => setActiveView('skilltree')} className={`flex min-w-0 flex-col items-center gap-1 rounded-lg p-2 ${activeView === 'skilltree' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500'}`}><BookOpen size={20}/> <span className="text-[10px] leading-none">Skills</span></button>
+        <button onClick={() => setActiveView('profile')} className={`flex min-w-0 flex-col items-center gap-1 rounded-lg p-2 ${activeView === 'profile' ? 'text-cyan-400 bg-cyan-500/10' : 'text-slate-500'}`}><User size={20}/> <span className="text-[10px] leading-none">Profile</span></button>
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-24 lg:pb-0">
         <AnimatePresence mode="wait">
         {activeView === 'noticeboard' ? (
             <NoticeBoardView
@@ -513,19 +513,19 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="p-8"
+                className="p-4 sm:p-6 lg:p-8"
             >
                 {/* Search bar row */}
                 <div className="flex flex-col gap-3 mb-8">
-                  <div className="flex justify-between items-center gap-4">
-                    <div className="relative flex-1 max-w-2xl">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <div className="relative w-full flex-1 sm:max-w-2xl">
                       <Search className="absolute left-4 top-3.5 text-cyan-400/50" size={18} />
                       <input
                         type="text"
                         placeholder="Search spellbook..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 pl-12 pr-12 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3.5 pl-11 pr-11 text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500 sm:p-4 sm:pl-12 sm:pr-12"
                       />
                       {(searchQuery || selectedTag) && (
                         <button
@@ -539,7 +539,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => setIsScribeModalOpen(true)}
-                      className="px-6 py-4 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                      className="w-full justify-center px-4 py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg flex items-center gap-2 text-white font-bold transition-all shadow-[0_0_20px_rgba(6,182,212,0.2)] sm:w-auto sm:px-6 sm:py-4"
                     >
                       <Plus size={18} /> Scribe New Spell
                     </button>
@@ -650,17 +650,17 @@ export default function App() {
                 exit={{ opacity: 0, y: -20 }}
             >
                 {/* Top HUD */}
-                <header className="bg-slate-900/20 backdrop-blur-md border-b border-slate-800/50 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className='flex items-center gap-8'>
+                <header className="bg-slate-900/20 backdrop-blur-md border-b border-slate-800/50 p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+                    <div className='flex min-w-0 items-center gap-4 sm:gap-8'>
                         <div className="flex flex-col">
                         <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-black mb-1">Level Status</span>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-900 rounded-full border border-slate-700">
                                 <span className={dailyStreak > 0 ? "text-orange-500" : "text-slate-600"}>🔥</span>
                                 <span className={`font-bold ${dailyStreak > 0 ? "text-white" : "text-slate-600"}`}>{dailyStreak}</span>
                             </div>
                             <span className="text-2xl font-bold text-white">LVL {playerLevel}</span>
-                            <div className="w-64 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                            <div className="h-3 min-w-32 flex-1 bg-slate-800 rounded-full overflow-hidden border border-slate-700 sm:w-64 sm:flex-none">
                                 <motion.div
                                     className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]"
                                     initial={{ width: 0 }}
@@ -672,21 +672,21 @@ export default function App() {
                         </div>
                         </div>
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={() => setActiveView('active')} className={`px-4 py-2 ${activeView === 'active' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Active</button>
-                        <button onClick={() => setActiveView('completed')} className={`px-4 py-2 ${activeView === 'completed' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Vanquished</button>
+                    <div className="flex gap-2 overflow-x-auto">
+                        <button onClick={() => setActiveView('active')} className={`shrink-0 px-4 py-2 ${activeView === 'active' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Active</button>
+                        <button onClick={() => setActiveView('completed')} className={`shrink-0 px-4 py-2 ${activeView === 'completed' ? 'text-cyan-400 border-b-2 border-cyan-500' : 'text-slate-500'}`}>Vanquished</button>
                     </div>
                     <button
                         onClick={() => setIsNewQuestModalOpen(true)}
-                        className="px-6 py-2.5 bg-[#020617] border border-cyan-500/50 rounded flex items-center gap-3 text-cyan-400 font-bold uppercase tracking-tighter hover:bg-cyan-500/10 transition-all shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                        className="w-full justify-center px-6 py-2.5 bg-[#020617] border border-cyan-500/50 rounded flex items-center gap-3 text-cyan-400 font-bold uppercase tracking-tighter hover:bg-cyan-500/10 transition-all shadow-[0_0_15px_rgba(34,211,238,0.1)] sm:w-auto">
                         <Plus size={18} /> New Quest
                     </button>
                 </header>
 
                 {/* Quest Grid */}
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                <div className="p-4 sm:p-6 lg:p-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 auto-rows-fr">
                     {isLoading && (
-                        <div className="col-span-3 flex justify-center items-center py-20 text-cyan-400/50 font-mono text-sm tracking-widest">
+                        <div className="col-span-full flex justify-center items-center py-20 text-center text-cyan-400/50 font-mono text-sm tracking-widest">
                             SYNCING WITH THE GUILD...
                         </div>
                     )}
@@ -717,10 +717,10 @@ export default function App() {
                   initial={{ opacity: 0, y: 50, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                  className="fixed bottom-8 right-8 bg-slate-900/90 border-2 border-purple-500 rounded-lg p-6 max-w-sm shadow-2xl z-50 text-white"
+                  className="fixed inset-x-4 bottom-28 bg-slate-900/90 border-2 border-purple-500 rounded-lg p-4 shadow-2xl z-50 text-white sm:inset-x-auto sm:right-8 sm:bottom-8 sm:max-w-sm sm:p-6"
               >
                   <p className="text-lg font-bold mb-4">{activeEncounter.text}</p>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                       <button onClick={() => { addXP(15); setActiveEncounter(null); }} className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded font-bold">Claim (+15 XP)</button>
                       <button onClick={() => setActiveEncounter(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded font-bold">Flee</button>
                   </div>
@@ -735,7 +735,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.92 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex items-center gap-4 bg-slate-900/95 border border-cyan-400/50 rounded-2xl px-6 py-4 shadow-[0_0_50px_rgba(6,182,212,0.3)] backdrop-blur-md"
+            className="fixed bottom-28 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 pointer-events-none flex items-center gap-4 bg-slate-900/95 border border-cyan-400/50 rounded-2xl px-5 py-4 shadow-[0_0_50px_rgba(6,182,212,0.3)] backdrop-blur-md sm:bottom-8 sm:w-auto sm:px-6"
           >
             <span className="text-2xl">⚡</span>
             <div>

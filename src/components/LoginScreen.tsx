@@ -75,28 +75,28 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="flex h-screen bg-[#020617] items-center justify-center overflow-hidden font-sans">
+    <div className="flex min-h-dvh bg-[#020617] items-center justify-center overflow-y-auto font-sans px-4 py-8">
       {/* Ambient grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.03)_1px,transparent_1px)] bg-[size:60px_60px] pointer-events-none" />
       {/* Glow orb */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 h-[320px] w-[320px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none sm:h-[600px] sm:w-[600px]" />
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-md mx-4"
+        className="relative z-10 w-full max-w-md"
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-display text-4xl font-bold tracking-tighter text-white mb-2">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tighter text-white mb-2">
             QUEST<span className="text-cyan-400">LOG</span>
           </h1>
           <p className="text-slate-500 text-sm tracking-widest uppercase">Cyber Guild — Access Terminal</p>
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-8 shadow-[0_0_40px_rgba(6,182,212,0.08)]">
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-cyan-500/20 rounded-xl p-5 sm:p-8 shadow-[0_0_40px_rgba(6,182,212,0.08)]">
           {/* Mode toggle */}
           <div className="flex rounded-lg overflow-hidden border border-slate-800 mb-8">
             <button

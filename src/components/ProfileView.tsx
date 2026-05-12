@@ -36,24 +36,24 @@ export const ProfileView = ({
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="p-8 max-w-4xl mx-auto"
+            className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8"
         >
             {/* Header */}
-            <div className="bg-slate-900/60 p-8 rounded-2xl border border-slate-700 mb-8 flex items-center gap-6">
-                <div className="p-4 bg-cyan-900/30 rounded-full border border-cyan-500/50">
-                    <Shield size={48} className="text-cyan-400" />
+            <div className="bg-slate-900/60 p-5 sm:p-8 rounded-2xl border border-slate-700 mb-6 sm:mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
+                <div className="p-3 sm:p-4 bg-cyan-900/30 rounded-full border border-cyan-500/50">
+                    <Shield size={40} className="text-cyan-400 sm:size-12" />
                 </div>
-                <div>
-                    <h2 className="text-3xl font-bold text-white tracking-tight">{playerName}</h2>
-                    <p className="text-cyan-400 text-lg font-bold tracking-wider">{rank}-Rank Boukensha</p>
+                <div className="min-w-0">
+                    <h2 className="break-words text-2xl font-bold text-white tracking-tight sm:text-3xl">{playerName}</h2>
+                    <p className="text-cyan-400 text-base font-bold tracking-wider sm:text-lg">{rank}-Rank Boukensha</p>
                     {playerEmail && (
-                        <p className="text-slate-500 text-sm mt-1">{playerEmail}</p>
+                        <p className="break-all text-slate-500 text-sm mt-1">{playerEmail}</p>
                     )}
                 </div>
             </div>
 
             {/* XP Bar */}
-            <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 mb-8">
+            <div className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700 mb-6 sm:mb-8">
                 <div className="flex justify-between text-sm text-slate-400 mb-2">
                     <span>Current XP</span>
                     <span>{playerXP} / 500 to Next Level</span>
@@ -68,14 +68,14 @@ export const ProfileView = ({
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                 {[
                     { label: 'Quests Vanquished', value: completedQuests.length },
                     { label: 'Bounties Claimed', value: completedBounties.length },
                     { label: 'Spells Scribed', value: recallNotes.length },
                     { label: 'Skill Points', value: skillPoints },
                 ].map(stat => (
-                    <div key={stat.label} className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 text-center">
+                    <div key={stat.label} className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700 text-center">
                         <p className="text-slate-400 text-sm mb-2">{stat.label}</p>
                         <p className="text-3xl font-bold text-white">{stat.value}</p>
                     </div>
@@ -83,7 +83,7 @@ export const ProfileView = ({
             </div>
 
             {/* Obtained Skills */}
-            <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 mb-8">
+            <div className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700 mb-6 sm:mb-8">
                 <h3 className="text-xl font-bold text-white mb-6">Obtained Skills</h3>
                 <div className="flex flex-wrap gap-4">
                     {obtainedSkills.map(skill => {
@@ -92,7 +92,7 @@ export const ProfileView = ({
                             <motion.div 
                                 key={skill.id}
                                 whileHover={{ scale: 1.05 }}
-                                className={`px-4 py-2 rounded-full border-2 border-${color}-500/50 bg-${color}-900/20 text-${color}-400 font-bold shadow-[0_0_10px_rgba(0,0,0,0.2)]`}
+                                className={`max-w-full break-words px-4 py-2 rounded-full border-2 border-${color}-500/50 bg-${color}-900/20 text-${color}-400 font-bold shadow-[0_0_10px_rgba(0,0,0,0.2)]`}
                             >
                                 {skill.title}
                             </motion.div>
@@ -102,12 +102,12 @@ export const ProfileView = ({
             </div>
 
             {/* Recent History */}
-            <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700">
+            <div className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700">
                 <h3 className="text-xl font-bold text-white mb-4">Recent History</h3>
                 <div className="space-y-3">
                     {quests.slice(-3).reverse().map(q => (
-                        <div key={q.id} className="flex justify-between p-3 bg-slate-800 rounded-lg">
-                            <span className="text-white text-sm">{q.title}</span>
+                        <div key={q.id} className="flex justify-between gap-3 p-3 bg-slate-800 rounded-lg">
+                            <span className="min-w-0 break-words text-white text-sm">{q.title}</span>
                             <span className="text-cyan-400 text-sm font-mono">+{q.xp} XP</span>
                         </div>
                     ))}

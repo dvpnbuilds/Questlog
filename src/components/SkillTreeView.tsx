@@ -47,20 +47,20 @@ const SkillNodeCard = ({
         <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`p-5 rounded-xl bg-slate-900 border-2 w-full ${isUnlocked ? borderColor : 'border-slate-700'} relative`}
+            className={`p-4 sm:p-5 rounded-xl bg-slate-900 border-2 w-full ${isUnlocked ? borderColor : 'border-slate-700'} relative`}
         >
-            <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold text-white">{node.title}</h3>
+            <div className="flex items-start justify-between gap-3 mb-2">
+                <h3 className="min-w-0 break-words font-bold text-white">{node.title}</h3>
                 {isUnlocked ? <CheckCircle className="text-emerald-400" size={20} /> : <Lock className="text-slate-500" size={20} />}
             </div>
             <p className="text-slate-400 text-xs mb-3">{node.description}</p>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:justify-between">
                 <span className={`text-slate-500 ${!isUnlocked && !canUnlock ? 'text-amber-500' : ''}`}>
                     Requires {node.requiredQuests} Quests
                 </span>
                 {!isUnlocked && (
                     canUnlock ? (
-                        <button onClick={onUnlock} className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded font-bold">Unlock</button>
+                        <button onClick={onUnlock} className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded font-bold">Unlock</button>
                     ) : (
                         <span className="text-slate-600 italic">Locked: Needs More Quests</span>
                     )
@@ -86,10 +86,10 @@ export const SkillTreeView = ({
     const availableSP = skillPoints - spentSkillPoints;
 
     return (
-        <motion.main key="skilltree" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8 flex flex-col items-center">
-            <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-700 w-full max-w-2xl mb-12 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white uppercase tracking-wider">Skill Tree</h2>
-                <div className="flex gap-4 p-3 bg-slate-800 rounded-lg">
+        <motion.main key="skilltree" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center p-4 sm:p-6 lg:p-8">
+            <div className="bg-slate-900/60 p-4 sm:p-6 rounded-2xl border border-slate-700 w-full max-w-2xl mb-8 sm:mb-12 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+                <h2 className="text-xl font-bold text-white uppercase tracking-wider sm:text-2xl">Skill Tree</h2>
+                <div className="flex justify-between gap-4 p-3 bg-slate-800 rounded-lg sm:justify-start">
                     <span className="text-slate-400 text-sm">SP Available</span>
                     <span className="font-bold text-amber-400 text-xl">{Math.max(0, availableSP)}</span>
                 </div>
@@ -107,7 +107,7 @@ export const SkillTreeView = ({
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 w-full max-w-4xl mt-8 sm:mt-12">
                 <div className="flex flex-col gap-4">
                     <h3 className="text-center font-bold text-cyan-400">Path of the Vibe-Coder</h3>
                     {PATH_VIBE_CODER.map((node) => (

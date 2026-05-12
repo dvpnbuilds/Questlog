@@ -77,7 +77,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
   return (
     <motion.div className="rounded-xl bg-slate-900 border border-slate-700 shadow-xl overflow-hidden">
       {/* Card Header */}
-      <div onClick={onToggle} className="p-5 cursor-pointer flex items-center justify-between">
+      <div onClick={onToggle} className="p-4 sm:p-5 cursor-pointer flex items-center justify-between">
         <div className="flex-1 min-w-0">
           {mode === 'edit' && isExpanded ? (
             <input
@@ -87,7 +87,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
               className="text-lg font-bold text-white mb-2 bg-slate-800 p-1 rounded border border-slate-700 focus:outline-none focus:border-cyan-500 w-full"
             />
           ) : (
-            <h3 className="text-lg font-bold text-white mb-2">{note.title}</h3>
+            <h3 className="break-words text-lg font-bold text-white mb-2">{note.title}</h3>
           )}
           <div className="flex flex-wrap gap-2">
             {note.tags.map(tag => (
@@ -111,19 +111,19 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-5 pb-5"
+            className="px-4 pb-4 sm:px-5 sm:pb-5"
           >
             {/* Edit / Preview mode toggle */}
-            <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-700 mb-4 w-fit">
+            <div className="grid grid-cols-2 bg-slate-950 rounded-lg p-1 border border-slate-700 mb-4 w-full sm:flex sm:w-fit">
               <button
                 onClick={() => setMode('edit')}
-                className={`flex items-center gap-2 px-3 py-1 rounded text-xs font-bold transition-colors ${mode === 'edit' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex items-center justify-center gap-2 px-3 py-1 rounded text-xs font-bold transition-colors ${mode === 'edit' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 <Edit3 size={14} /> Edit
               </button>
               <button
                 onClick={() => setMode('preview')}
-                className={`flex items-center gap-2 px-3 py-1 rounded text-xs font-bold transition-colors ${mode === 'preview' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex items-center justify-center gap-2 px-3 py-1 rounded text-xs font-bold transition-colors ${mode === 'preview' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
                 <Eye size={14} /> Preview
               </button>
@@ -171,7 +171,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                     value={note.ritual}
                     onChange={(e) => onUpdate({ ...note, ritual: e.target.value })}
                     placeholder="Procedures, steps, theory — markdown supported..."
-                    className="w-full min-h-[180px] bg-slate-900/50 border border-slate-700 rounded-lg p-4 text-slate-300 font-mono text-sm focus:outline-none focus:border-purple-500/70 focus:shadow-[0_0_0_1px_rgba(168,85,247,0.2)] resize-y transition-shadow"
+                    className="w-full min-h-[180px] bg-slate-900/50 border border-slate-700 rounded-lg p-3 sm:p-4 text-slate-300 font-mono text-sm focus:outline-none focus:border-purple-500/70 focus:shadow-[0_0_0_1px_rgba(168,85,247,0.2)] resize-y transition-shadow"
                   />
                 </div>
 
@@ -202,14 +202,14 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                     value={note.incantation}
                     onChange={(e) => onUpdate({ ...note, incantation: e.target.value })}
                     placeholder="Raw prompts, code snippets, terminal commands..."
-                    className="w-full min-h-[180px] bg-slate-950 border border-cyan-900/40 rounded-lg p-4 text-cyan-300 font-mono text-sm focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.2)] resize-y transition-shadow"
+                    className="w-full min-h-[180px] bg-slate-950 border border-cyan-900/40 rounded-lg p-3 sm:p-4 text-cyan-300 font-mono text-sm focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_1px_rgba(6,182,212,0.2)] resize-y transition-shadow"
                   />
                 </div>
               </>
             ) : (
               <>
                 {/* Preview tab switcher */}
-                <div className="flex gap-1 bg-slate-950 rounded-lg p-1 border border-slate-700 mb-4 w-fit">
+                <div className="grid grid-cols-2 gap-1 bg-slate-950 rounded-lg p-1 border border-slate-700 mb-4 w-full sm:flex sm:w-fit">
                   <button
                     onClick={() => setPreviewTab('ritual')}
                     className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${previewTab === 'ritual' ? 'bg-purple-600 text-white shadow-[0_0_8px_rgba(147,51,234,0.4)]' : 'text-slate-400 hover:text-slate-200'}`}
@@ -232,7 +232,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 8 }}
                       transition={{ duration: 0.15 }}
-                      className="spell-prose w-full min-h-[300px] p-6 text-slate-300 text-base rounded-lg bg-slate-900/30 border border-slate-700/50"
+                      className="spell-prose w-full min-h-[260px] p-4 sm:p-6 text-slate-300 text-base rounded-lg bg-slate-900/30 border border-slate-700/50"
                     >
                       {note.ritual
                         ? <ReactMarkdown skipHtml>{note.ritual}</ReactMarkdown>
@@ -255,7 +255,7 @@ export function SpellbookNoteCard({ note, onUpdate, isExpanded, onToggle, onCopy
                         {copied ? <Check size={12} /> : <Copy size={12} />}
                         {copied ? 'Copied!' : 'Copy'}
                       </button>
-                      <div className="spell-prose spell-incantation w-full min-h-[300px] bg-slate-950 border border-cyan-900/50 rounded-lg p-5 pr-24 text-cyan-300 font-mono text-sm leading-relaxed shadow-[inset_0_0_30px_rgba(6,182,212,0.03)]">
+                      <div className="spell-prose spell-incantation w-full min-h-[260px] bg-slate-950 border border-cyan-900/50 rounded-lg p-4 pr-20 sm:p-5 sm:pr-24 text-cyan-300 font-mono text-sm leading-relaxed shadow-[inset_0_0_30px_rgba(6,182,212,0.03)]">
                         {note.incantation
                           ? <ReactMarkdown skipHtml>{note.incantation}</ReactMarkdown>
                           : <p style={{ whiteSpace: 'normal' }} className="text-slate-600 italic">No incantation scribed.</p>

@@ -81,7 +81,7 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             onClick={() => setIsOpen(true)}
             title="Ask the Librarian"
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-slate-900/90 border border-purple-500/40 backdrop-blur-xl flex items-center justify-center shadow-[0_0_30px_rgba(147,51,234,0.35)] hover:shadow-[0_0_45px_rgba(147,51,234,0.55)] hover:border-purple-400/60 transition-all group"
+            className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-full bg-slate-900/90 border border-purple-500/40 backdrop-blur-xl flex items-center justify-center shadow-[0_0_30px_rgba(147,51,234,0.35)] hover:shadow-[0_0_45px_rgba(147,51,234,0.55)] hover:border-purple-400/60 transition-all group lg:bottom-6 lg:right-6"
           >
             {/* Outer pulse ring */}
             <span className="absolute inset-0 rounded-full animate-ping bg-purple-500/15 group-hover:bg-purple-500/25" />
@@ -99,7 +99,7 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.96 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] h-[540px] flex flex-col rounded-2xl overflow-hidden bg-slate-900/85 backdrop-blur-xl border border-purple-500/20 shadow-[0_0_80px_rgba(147,51,234,0.12),0_25px_50px_rgba(0,0,0,0.6)]"
+            className="fixed inset-x-3 bottom-24 z-50 flex h-[min(620px,calc(100dvh-7.5rem))] flex-col overflow-hidden rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-purple-500/20 shadow-[0_0_80px_rgba(147,51,234,0.12),0_25px_50px_rgba(0,0,0,0.6)] sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-6 lg:right-6 lg:bg-slate-900/85"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-purple-500/20 bg-purple-950/20 shrink-0">
@@ -145,7 +145,7 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
                       <button
                         key={hint}
                         onClick={() => { setInput(hint); inputRef.current?.focus(); }}
-                        className="text-[11px] text-purple-400/70 hover:text-purple-300 border border-purple-500/15 hover:border-purple-500/30 rounded-lg px-3 py-1.5 transition-colors text-left"
+                      className="break-words text-[11px] text-purple-400/70 hover:text-purple-300 border border-purple-500/15 hover:border-purple-500/30 rounded-lg px-3 py-1.5 transition-colors text-left"
                       >
                         "{hint}"
                       </button>
@@ -156,7 +156,7 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
 
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                  <div className={`max-w-[88%] break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap sm:max-w-[82%] ${
                     msg.role === 'user'
                       ? 'bg-cyan-600/80 text-white rounded-br-sm'
                       : 'bg-purple-950/60 border border-purple-500/20 text-slate-200 rounded-bl-sm'

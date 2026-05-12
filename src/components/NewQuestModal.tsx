@@ -43,10 +43,10 @@ export function NewQuestModal({ isOpen, onClose, onQuestCreated }: ModalProps) {
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_rgba(34,211,238,0.1)] relative"
+            className="bg-slate-900 border border-slate-700 p-5 sm:p-8 rounded-2xl w-full max-w-lg shadow-[0_0_50px_rgba(34,211,238,0.1)] relative"
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">Create New Quest</h2>
+              <h2 className="text-xl font-bold text-white sm:text-2xl">Create New Quest</h2>
               <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={24} /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -63,13 +63,13 @@ export function NewQuestModal({ isOpen, onClose, onQuestCreated }: ModalProps) {
               </div>
               <div>
                 <label className="block text-sm text-cyan-400 mb-2">Rarity</label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {(['Common', 'Rare', 'Epic'] as Rarity[]).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setRarity(r)}
-                      className={`px-4 py-2 rounded-lg border text-sm font-bold transition-all ${rarity === r ? (r === 'Epic' ? 'bg-purple-600 border-purple-400' : r === 'Rare' ? 'bg-blue-600 border-blue-400' : 'bg-slate-600 border-slate-400') : 'bg-slate-950 border-slate-700 text-slate-500'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg border text-sm font-bold transition-all ${rarity === r ? (r === 'Epic' ? 'bg-purple-600 border-purple-400' : r === 'Rare' ? 'bg-blue-600 border-blue-400' : 'bg-slate-600 border-slate-400') : 'bg-slate-950 border-slate-700 text-slate-500'}`}
                     >
                       {r}
                     </button>

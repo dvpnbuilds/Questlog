@@ -95,10 +95,10 @@ export function ScribeSpellModal({ isOpen, onClose, onSave }: Props) {
             exit={{ scale: 0.96, opacity: 0, y: 12 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl bg-slate-900/80 backdrop-blur-xl border border-cyan-500/20 rounded-2xl shadow-[0_0_80px_rgba(6,182,212,0.12),0_25px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+            className="w-full max-w-2xl bg-slate-900/90 backdrop-blur-xl border border-cyan-500/20 rounded-2xl shadow-[0_0_80px_rgba(6,182,212,0.12),0_25px_50px_rgba(0,0,0,0.5)] overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+            <div className="flex items-center justify-between px-4 py-4 sm:px-6 border-b border-slate-800">
               <h2 className="text-lg font-bold text-white tracking-tight">Scribe New Spell</h2>
               <button
                 onClick={onClose}
@@ -109,7 +109,7 @@ export function ScribeSpellModal({ isOpen, onClose, onSave }: Props) {
             </div>
 
             {/* Body */}
-            <div className="px-6 py-5 space-y-4 max-h-[65vh] overflow-y-auto">
+            <div className="px-4 py-5 sm:px-6 space-y-4 max-h-[65dvh] overflow-y-auto">
               {/* Title */}
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
@@ -206,17 +206,17 @@ export function ScribeSpellModal({ isOpen, onClose, onSave }: Props) {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-slate-900/50">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 sm:px-6 py-4 border-t border-slate-800 bg-slate-900/50">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm font-medium transition-all"
+                className="w-full sm:w-auto px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm font-medium transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                className="w-full sm:w-auto justify-center px-5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(6,182,212,0.2)]"
               >
                 {isSaving
                   ? <><Loader2 size={13} className="animate-spin" /> Scribing...</>

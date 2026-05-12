@@ -8,8 +8,16 @@
   --color-quest-cyan: #22d3ee;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
   @apply bg-quest-bg text-white font-sans;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Spell markdown prose ───────────────────────────────────────────── */

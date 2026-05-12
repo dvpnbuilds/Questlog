@@ -66,20 +66,20 @@ export function NoteModal({ note, isOpen, onClose, onUpdateNote }: ModalProps) {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-3xl shadow-[0_0_50px_rgba(34,211,238,0.1)] relative max-h-[90vh] overflow-y-auto"
+            className="bg-slate-900 border border-slate-700 p-4 sm:p-8 rounded-2xl w-full max-w-3xl shadow-[0_0_50px_rgba(34,211,238,0.1)] relative max-h-[90dvh] overflow-y-auto"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">{note.title}</h2>
-              <div className="flex bg-slate-950 rounded-lg p-1 border border-slate-700">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
+              <h2 className="min-w-0 break-words text-xl font-bold text-white sm:text-2xl">{note.title}</h2>
+              <div className="grid grid-cols-2 bg-slate-950 rounded-lg p-1 border border-slate-700 sm:flex">
                   <button 
                       onClick={() => setMode('edit')}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-bold transition-all ${mode === 'edit' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-white'}`}
+                      className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded text-sm font-bold transition-all ${mode === 'edit' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-white'}`}
                   >
                       <Edit3 size={16} /> Edit
                   </button>
                   <button 
                       onClick={() => setMode('preview')}
-                      className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-bold transition-all ${mode === 'preview' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-white'}`}
+                      className={`flex items-center justify-center gap-2 px-4 py-1.5 rounded text-sm font-bold transition-all ${mode === 'preview' ? 'bg-cyan-500 text-white' : 'text-slate-400 hover:text-white'}`}
                   >
                       <Eye size={16} /> Preview
                   </button>
@@ -90,11 +90,11 @@ export function NoteModal({ note, isOpen, onClose, onUpdateNote }: ModalProps) {
                 <textarea
                   value={description}
                   onChange={(e) => updateDescription(e.target.value)}
-                  className="w-full min-h-[40vh] bg-slate-900/50 border border-slate-700 rounded-lg p-6 text-slate-300 font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 resize-y"
+                  className="w-full min-h-[40vh] bg-slate-900/50 border border-slate-700 rounded-lg p-4 sm:p-6 text-slate-300 font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 resize-y"
                   placeholder="Note details (Markdown supported)..."
                 />
             ) : (
-                <div className="w-full min-h-[40vh] p-6 text-slate-300 font-sans text-base leading-relaxed overflow-y-auto prose prose-invert prose-cyan max-w-none">
+                <div className="w-full min-h-[40vh] p-4 sm:p-6 text-slate-300 font-sans text-base leading-relaxed overflow-y-auto prose prose-invert prose-cyan max-w-none">
                     <ReactMarkdown skipHtml>{description}</ReactMarkdown>
                 </div>
             )}
