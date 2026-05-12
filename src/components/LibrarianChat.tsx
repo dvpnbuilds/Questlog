@@ -6,6 +6,8 @@ import type { Note } from '../types';
 
 const MAX_MESSAGE_CHARS = 1000;
 const MAX_HISTORY_MESSAGES = 8;
+const MAX_CONTEXT_SPELLS = 50;
+const MAX_CONTEXT_FIELD_CHARS = 1500;
 
 interface Message {
   role: 'user' | 'assistant';
@@ -44,6 +46,12 @@ export function LibrarianChat({ spells }: { spells: Note[] }) {
           history: messages.slice(-MAX_HISTORY_MESSAGES).map((msg) => ({
             role: msg.role,
             content: msg.content.slice(0, MAX_MESSAGE_CHARS),
+          })),
+          spells: spells.slice(0, MAX_CONTEXT_SPELLS).map((spell) => ({
+            title: spell.title.slice(0, MAX_CONTEXT_FIELD_CHARS),
+            ritual: spell.ritual.slice(0, MAX_CONTEXT_FIELD_CHARS),
+            incantation: spell.incantation.slice(0, MAX_CONTEXT_FIELD_CHARS),
+            tags: spell.tags.slice(0, 10).map((tag) => tag.slice(0, 80)),
           })),
         },
       });

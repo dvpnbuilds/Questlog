@@ -2,7 +2,7 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const MAX_BODY_BYTES = 12_000;
+const MAX_BODY_BYTES = 220_000;
 const MAX_MESSAGE_CHARS = 1_000;
 const MAX_HISTORY_MESSAGES = 8;
 const MAX_HISTORY_CHARS = 1_000;
@@ -18,6 +18,7 @@ interface Spell {
   title: string;
   ritual: string;
   incantation: string;
+  tags?: string[];
 }
 
 interface ChatMessage {
@@ -100,9 +101,35 @@ const cleanHistory = (value: unknown): ChatMessage[] => {
   });
 };
 
+const cleanSpells = (value: unknown): Spell[] => {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, MAX_SPELLS).flatMap((item): Spell[] => {
+    if (!item || typeof item !== 'object') return [];
+    const record = item as Record<string, unknown>;
+    const title = cleanText(record.title, MAX_SPELL_FIELD_CHARS);
+    const ritual = cleanText(record.ritual, MAX_SPELL_FIELD_CHARS);
+    const incantation = cleanText(record.incantation, MAX_SPELL_FIELD_CHARS);
+    const tags = Array.isArray(record.tags)
+      ? record.tags
+        .map((tag) => cleanText(tag, 80))
+        .filter(Boolean)
+        .slice(0, 10)
+      : [];
+
+    if (!title && !ritual && !incantation) return [];
+    return [{
+      title: title || 'Untitled Spell',
+      ritual,
+      incantation,
+      tags,
+    }];
+  });
+};
+
 const formatSpell = (spell: Spell) =>
   `<spell>
 <title>${cleanText(spell.title, MAX_SPELL_FIELD_CHARS)}</title>
+<tags>${(spell.tags ?? []).map((tag) => cleanText(tag, 80)).join(', ')}</tags>
 <ritual>${cleanText(spell.ritual, MAX_SPELL_FIELD_CHARS)}</ritual>
 <incantation>${cleanText(spell.incantation, MAX_SPELL_FIELD_CHARS)}</incantation>
 </spell>`;
@@ -148,7 +175,7 @@ Deno.serve(async (req) => {
     return json({ error: 'Request body too large' }, 413, cors);
   }
 
-  let body: { message?: unknown; history?: unknown };
+  let body: { message?: unknown; history?: unknown; spells?: unknown };
   try {
     body = JSON.parse(rawBody);
   } catch {
@@ -161,19 +188,25 @@ Deno.serve(async (req) => {
   }
 
   const history = cleanHistory(body.history);
+  const providedSpells = cleanSpells(body.spells);
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const { data: spells, error: spellsError } = await supabase
-    .from('spells')
-    .select('title, ritual, incantation')
-    .order('id', { ascending: true })
-    .limit(MAX_SPELLS);
+  let spells = providedSpells;
+  if (spells.length === 0) {
+    const { data: loadedSpells, error: spellsError } = await supabase
+      .from('spells')
+      .select('title, ritual, incantation, tags')
+      .order('id', { ascending: true })
+      .limit(MAX_SPELLS);
 
-  if (spellsError) {
-    console.error('Failed to load spell context:', spellsError.message);
-    return json({ error: 'Service unavailable' }, 503, cors);
+    if (!spellsError && loadedSpells) {
+      spells = cleanSpells(loadedSpells);
+    } else if (spellsError) {
+      console.error('Failed to load spell context:', spellsError.message);
+      return json({ error: 'Service unavailable' }, 503, cors);
+    }
   }
 
   const spellContext = spells && spells.length > 0
